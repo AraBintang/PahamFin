@@ -5,6 +5,9 @@ require_once __DIR__ . '/../app/includes/auth.php';
 require_login();
 $user_id = current_user_id();
 
+// Otomatis lengkapi 12 kategori standar jika belum ada
+PahamFin_seed_default_categories($pdo, $user_id);
+
 /* ── POST handlers (must be before any HTML output) ── */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!PahamFin_csrf_verify()) {
@@ -194,56 +197,8 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
             </div>
         </div>
 
-        <!-- Preset Kategori -->
-        <div class="glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/60 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-4 lg:p-6 border-b border-gray-100 dark:border-slate-700/50">
-                <h3 class="text-base lg:text-lg font-semibold text-gray-900 dark:text-slate-100">⚡ Preset Kategori</h3>
-                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Tambah sekaligus kategori populer dengan sekali klik. Kategori yang sudah ada tidak akan ditambah dua kali.</p>
-            </div>
-            <div class="p-4 lg:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <form method="POST">
-                    <?= PahamFin_csrf_field() ?>
-                    <input type="hidden" name="action" value="add_preset">
-                    <input type="hidden" name="preset" value="all">
-                    <button type="submit" class="h-full w-full flex flex-col justify-center gap-2 px-5 py-4 border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-900/20 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl text-left transition relative group">
-                        <i class="ph ph-sparkle text-2xl text-emerald-500 dark:text-emerald-400 absolute right-4 top-4 opacity-40 group-hover:opacity-70 transition"></i>
-                        <span class="block font-semibold text-emerald-900 dark:text-emerald-300 text-sm flex items-center gap-1.5"><i class="ph ph-star-fill text-amber-500"></i> Lengkap (12 Kategori)</span>
-                        <span class="block text-xs text-emerald-700 dark:text-emerald-400">Gaji, Usaha, Makan, Bensin, Belanja, Tagihan, Hiburan, dll.</span>
-                    </button>
-                </form>
-                <form method="POST">
-                    <?= PahamFin_csrf_field() ?>
-                    <input type="hidden" name="action" value="add_preset">
-                    <input type="hidden" name="preset" value="daily">
-                    <button type="submit" class="h-full w-full flex flex-col justify-center gap-2 px-5 py-4 border border-blue-200 dark:border-blue-800/50 bg-blue-50/50 dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl text-left transition relative group">
-                        <i class="ph ph-lightning text-2xl text-blue-500 dark:text-blue-400 absolute right-4 top-4 opacity-40 group-hover:opacity-70 transition"></i>
-                        <span class="block font-semibold text-gray-800 dark:text-slate-200 text-sm">Kebutuhan Harian</span>
-                        <span class="block text-xs text-gray-500 dark:text-slate-400">Makan, Transportasi, Belanja, Pulsa, Gaji</span>
-                    </button>
-                </form>
-                <form method="POST">
-                    <?= PahamFin_csrf_field() ?>
-                    <input type="hidden" name="action" value="add_preset">
-                    <input type="hidden" name="preset" value="food">
-                    <button type="submit" class="h-full w-full flex flex-col justify-center gap-2 px-5 py-4 border border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/20 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-xl text-left transition relative group">
-                        <i class="ph ph-bowl-food text-2xl text-amber-500 dark:text-amber-400 absolute right-4 top-4 opacity-40 group-hover:opacity-70 transition"></i>
-                        <span class="block font-semibold text-gray-800 dark:text-slate-200 text-sm">Makan & Minum</span>
-                        <span class="block text-xs text-gray-500 dark:text-slate-400">Makan, Minuman, Snack</span>
-                    </button>
-                </form>
-                <form method="POST">
-                    <?= PahamFin_csrf_field() ?>
-                    <input type="hidden" name="action" value="add_preset">
-                    <input type="hidden" name="preset" value="others">
-                    <button type="submit" class="h-full w-full flex flex-col justify-center gap-2 px-5 py-4 border border-purple-200 dark:border-purple-800/50 bg-purple-50/50 dark:bg-purple-900/20 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-xl text-left transition relative group">
-                        <i class="ph ph-dots-three-circle text-2xl text-purple-500 dark:text-purple-400 absolute right-4 top-4 opacity-40 group-hover:opacity-70 transition"></i>
-                        <span class="block font-semibold text-gray-800 dark:text-slate-200 text-sm">Lain-lain & Tabungan</span>
-                        <span class="block text-xs text-gray-500 dark:text-slate-400">Tabungan, Investasi, Hiburan, Tagihan</span>
-                    </button>
-                </form>
-            </div>
-        </div>
     </div>
+
 
     <!-- Modal Konfirmasi Hapus -->
     <div x-show="showDelete" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
