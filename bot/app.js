@@ -6,7 +6,7 @@ const axios = require('axios');
 
 function loadEnv() {
     const envFile = path.join(__dirname, '.env');
-    const config = { WEBHOOK_URL: 'http://localhost/PahamFin/webhook.php', PAHAMFIN_WEBHOOK_KEY: '' };
+    const config = { WEBHOOK_URL: 'http://pahamfin.softwaremahasiswa.com/webhook.php', PAHAMFIN_WEBHOOK_KEY: '' };
 
     if (fs.existsSync(envFile)) {
         const lines = fs.readFileSync(envFile, 'utf8').split(/\r?\n/);

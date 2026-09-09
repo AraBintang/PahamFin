@@ -18,7 +18,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script>
         tailwind.config = {
-            darkMode: 'class',
+            darkMode: 'class', 
             theme: {
                 extend: {
                     colors: {
@@ -130,7 +130,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 <section class="hero-bg relative overflow-hidden text-neutral">
     <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 relative z-10 flex flex-col items-center min-h-[760px] pt-[110px] pb-[120px] text-center">
         <h1 class="font-display font-bold text-[30px] lg:text-[44px] leading-[1.35] max-w-[860px] text-dark dark:text-white">
-            Catat Keuangan <span class="text-primary dark:text-blue-400">Otomatis</span> Langsung dari Chat Telegram
+            Catat Keuangan <span class="text-primary dark:text-blue-400">Otomatis</span> Langsung dari Chat Telegram 🚀
         </h1>
         <p class="mt-6 text-base lg:text-lg leading-[170%] max-w-[760px] text-gray-600 dark:text-slate-300 dark:text-slate-300">
             PahamFin membantu kamu mencatat pemasukan dan pengeluaran hanya dengan mengirim pesan seperti

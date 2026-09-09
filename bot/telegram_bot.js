@@ -20,7 +20,7 @@ function loadEnv() {
     const defaults = {
         TELEGRAM_TOKEN: '',
         TELEGRAM_BOT_USERNAME: '',
-WEBHOOK_URL: 'http://localhost/PahamFin/webhook.php',
+        WEBHOOK_URL: 'http://pahamfin.softwaremahasiswa.com/webhook.php',
         PAHAMFIN_WEBHOOK_SECRET: '',
     };
 
