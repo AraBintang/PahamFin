@@ -68,7 +68,6 @@ foreach ($todayReminders as $r) {
             'message' => "🚨 *PENGINGAT JATUH TEMPO HARI INI!*\n\n📝: {$r['title']}\n\n_Ketik \`/done {$r['id']}\` jika sudah diselesaikan._"
         ];
     }
-    }
 }
 
 // 3. Financial Wrapped (Rekap Otomatis Awal Bulan)
