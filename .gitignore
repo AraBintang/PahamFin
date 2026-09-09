@@ -1,0 +1,14 @@
+# Senjata rahasia
+bot/.env
+
+# Dependensi
+node_modules/
+
+# Database runtime
+*.db
+*.db-journal
+
+# Log & cache
+*.log
+.DS_Store
+Thumbs.db

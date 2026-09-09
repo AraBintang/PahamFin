@@ -1,0 +1,1 @@
+<?php require "app/db.php"; try { $pdo->exec("ALTER TABLE debts ADD COLUMN status ENUM('UNPAID','PAID') NOT NULL DEFAULT 'UNPAID'"); echo "Success"; } catch (Throwable $e) { echo $e->getMessage(); } ?>

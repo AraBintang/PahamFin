@@ -1,0 +1,20 @@
+{
+  "name": "pahamfin-bot",
+  "version": "1.0.0",
+  "description": "PahamFin - WhatsApp & Telegram Bot untuk Pencatatan Keuangan",
+  "main": "app.js",
+  "scripts": {
+    "start:wa": "node app.js",
+    "start:tele": "node telegram_bot.js"
+  },
+  "dependencies": {
+    "axios": "^1.5.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.23.0"
+  },
+  "keywords": ["pahamfin", "whatsapp", "telegram", "keuangan"],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
