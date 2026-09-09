@@ -15,7 +15,7 @@
  * ------------------------------------------------------------------ */
 // Base URL aplikasi ini tanpa garis miring di akhir.
 // Dipakai untuk membangun tautan webhook & dashboard di balasan bot.
-define('PahamFin_BASE_URL', getenv('PahamFin_BASE_URL') ?: 'https://eligibly-chute-crawling.ngrok-free.dev/PahamFin');
+define('PahamFin_BASE_URL', getenv('PahamFin_BASE_URL') ?: 'http://pahamfin.softwaremahasiswa.com');
 
 // URL endpoint webhook yang menerima data dari bot (WA & Telegram).
 define('PahamFin_WEBHOOK_URL', getenv('PahamFin_WEBHOOK_URL') ?: PahamFin_BASE_URL . '/webhook.php');
@@ -87,7 +87,7 @@ define('PahamFin_GOOGLE_REDIRECT_URI', getenv('PahamFin_GOOGLE_REDIRECT_URI') ?:
 // Pengguna yang sudah berstatus admin (role = 'admin') tetap admin meskipun
 // emailnya tidak ada di daftar ini. Untuk admin baru cukup tambahkan
 // emailnya di sini lalu minta dia login.
-define('PahamFin_ADMIN_EMAILS', getenv('PahamFin_ADMIN_EMAILS') ?: '');
+define('PahamFin_ADMIN_EMAILS', getenv('PahamFin_ADMIN_EMAILS') ?: 'arabintangpamungkas123@gmail.com');
 
 /* ------------------------------------------------------------------
  * PARSING NOMINAL
