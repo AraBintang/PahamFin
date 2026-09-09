@@ -92,26 +92,6 @@ $tgUsername = trim(PahamFin_TELEGRAM_BOT_USERNAME);
             </div>
         </div>
 
-        <!-- Cara menjalankan bot (untuk admin/server) -->
-        <details class="glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/80 rounded-2xl shadow-sm overflow-hidden p-6">
-            <summary class="cursor-pointer font-semibold text-gray-900 dark:text-slate-100 flex items-center gap-2">
-                <i class="ph ph-terminal-window text-primary dark:text-blue-400"></i> Cara Menjalankan Bot Telegram (untuk admin server)
-            </summary>
-            <div class="mt-4 text-sm text-gray-600 dark:text-slate-400 space-y-3 leading-relaxed">
-                <p>
-                    Bot Telegram memakai <b>long polling</b>, jadi prosesnya harus <b>berjalan terus-menerus</b>. Jalankan dari folder <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">bot</span>:
-                </p>
-                <pre class="bg-gray-900 text-gray-100 rounded-lg p-3 overflow-x-auto text-xs"><code>cd bot
-node telegram_bot.js</code></pre>
-                <p>
-                    Saat berhasil: <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">Telegram bot connected! (username: @<?= htmlspecialchars(PahamFin_TELEGRAM_BOT_USERNAME) ?>)</span>.
-                </p>
-                <ul class="space-y-1 pl-1">
-                    <li>• Agar berjalan terus, gunakan <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">pm2</span>, <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">systemd</span>, atau <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">screen</span>.</li>
-                    <li>• Konfigurasi di <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">bot/.env</span> dan <span class="font-mono bg-gray-100 dark:bg-slate-700 dark:text-slate-300 px-1 rounded">app/includes/config.php</span>.</li>
-                </ul>
-            </div>
-        </details>
     </div>
 </div>
 
