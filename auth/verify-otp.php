@@ -47,8 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         if ($inputOtp === $pending['otp']) {
             // Berhasil! Simpan ke database
-            $stmt = $pdo->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
-            if ($stmt->execute([$pending['name'], $pending['email'], $pending['password']])) {
+            $phoneInsert = empty($pending['phone']) ? null : $pending['phone'];
+            $stmt = $pdo->prepare("INSERT INTO users (name, email, phone_number, password) VALUES (?, ?, ?, ?)");
+            if ($stmt->execute([$pending['name'], $pending['email'], $phoneInsert, $pending['password']])) {
                 $newId = (int) $pdo->lastInsertId();
                 
                 // Seed default categories

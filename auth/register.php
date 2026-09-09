@@ -12,12 +12,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!PahamFin_csrf_verify()) {
         $error = 'Sesi tidak valid.';
     } else {
-        $name = trim((string) ($_POST['name'] ?? ''));
+    $name  = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
         $password = (string) ($_POST['password'] ?? '');
+        $phone = preg_replace('/[^0-9+]/', '', trim((string) ($_POST['phone'] ?? '')));
 
         if ($name === '' || $email === '' || $password === '') {
-            $error = 'Semua field wajib diisi.';
+            $error = 'Nama, email, dan password wajib diisi.';
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $error = 'Format email tidak valid.';
         } elseif (strlen($password) < 6) {
@@ -33,11 +34,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $otp = (isset($_SESSION['pending_reg']['otp']) && $_SESSION['pending_reg']['email'] === $email && $_SESSION['pending_reg']['expires'] > time()) ? $_SESSION['pending_reg']['otp'] : (string) random_int(100000, 999999);
                 
                 $_SESSION['pending_reg'] = [
-                    'name' => $name,
-                    'email' => $email,
+                    'name'     => $name,
+                    'email'    => $email,
                     'password' => $hash,
-                    'otp' => $otp,
-                    'expires' => time() + 600
+                    'phone'    => $phone,
+                    'otp'      => $otp,
+                    'expires'  => time() + 600
                 ];
                 
                 require_once __DIR__ . '/../app/includes/mailer.php';
@@ -127,6 +129,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="relative">
                     <i class="ph ph-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     <input type="email" name="email" required placeholder="nama@email.com" class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary outline-none transition-shadow text-sm">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5 ml-1">Nomor HP <span class="text-gray-400 font-normal">(Opsional)</span></label>
+                <div class="relative">
+                    <i class="ph ph-phone absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="tel" name="phone" placeholder="08xxxxxxxxxx" class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary outline-none transition-shadow text-sm">
                 </div>
             </div>
 
