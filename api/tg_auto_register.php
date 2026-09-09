@@ -47,17 +47,7 @@ $insert->execute([$name, $phone, $telegramId, $generatedEmail, $hashedPass]);
 $userId = (int) $pdo->lastInsertId();
 
 // Buat 5 kategori default otomatis
-$defaultCategories = [
-    ['Makanan & Minuman', 'makan,minum,kopi,kfc,mcd,warteg,sate,bakso,nasi,beli makan', 'PENGELUARAN'],
-    ['Transportasi',      'bensin,gojek,grab,toll,tol,parkir,ongkir,ojek,bus',           'PENGELUARAN'],
-    ['Belanja',           'belanja,shopee,tokopedia,baju,sepatu,grocery',                  'PENGELUARAN'],
-    ['Tagihan',           'listrik,air,wifi,internet,pulsa,token',                         'PENGELUARAN'],
-    ['Gaji & Pemasukan',  'gaji,salary,transfer masuk,bonus,freelance',                   'PEMASUKAN'],
-];
-$stmtCat = $pdo->prepare("INSERT INTO categories (user_id, name, keyword, type) VALUES (?, ?, ?, ?)");
-foreach ($defaultCategories as $cat) {
-    $stmtCat->execute([$userId, $cat[0], $cat[1], $cat[2]]);
-}
+PahamFin_seed_default_categories($pdo, $userId);
 
 echo json_encode([
     'success'  => true,

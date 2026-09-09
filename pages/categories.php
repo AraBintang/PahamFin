@@ -36,6 +36,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'add_preset') {
         $presetName = trim((string) ($_POST['preset'] ?? ''));
         $presets = [
+            'all' => [
+                ['name' => 'Gaji & Pendapatan',    'keyword' => 'gaji, bonus, pendapatan, thr, salary, upah, komisi, hasil, insentif, transfer masuk', 'type' => 'PEMASUKAN'],
+                ['name' => 'Usaha & Freelance',   'keyword' => 'omset, jualan, dagang, laku, untung, freelance, projek, project, bisnis, profit',      'type' => 'PEMASUKAN'],
+                ['name' => 'Investasi & Pasif',    'keyword' => 'dividen, bunga, investasi, saham, crypto, cashback, hibah, hadiah, reksadana',         'type' => 'PEMASUKAN'],
+                ['name' => 'Makanan & Minuman',   'keyword' => 'makan, minum, kopi, kfc, mcd, warteg, sate, bakso, nasi, beli makan, gofood, grabfood, cafe, jajan, snack, boba', 'type' => 'PENGELUARAN'],
+                ['name' => 'Transportasi',        'keyword' => 'bensin, gojek, grab, toll, tol, parkir, ongkir, ojek, bus, kereta, tiket, servis, oli, pertalite, pertamax, krl, travel', 'type' => 'PENGELUARAN'],
+                ['name' => 'Belanja & Harian',    'keyword' => 'belanja, shopee, tokopedia, baju, sepatu, grocery, alfamart, indomaret, mall, skincare, kosmetik, minimarket', 'type' => 'PENGELUARAN'],
+                ['name' => 'Tagihan & Utilitas',  'keyword' => 'listrik, air, wifi, internet, pulsa, token, kuota, pdam, kost, kontrakan, sewa, asuransi, bpjs, cicilan, paylater', 'type' => 'PENGELUARAN'],
+                ['name' => 'Hiburan & Lifestyle', 'keyword' => 'nonton, bioskop, netflix, spotify, game, topup, jalan, liburan, rekreasi, party, nongkrong, piknik', 'type' => 'PENGELUARAN'],
+                ['name' => 'Kesehatan & Perawatan','keyword' => 'obat, dokter, rumah sakit, klinik, vitamin, apotek, gym, fitnes, salon, potong rambut', 'type' => 'PENGELUARAN'],
+                ['name' => 'Pendidikan & Kursus', 'keyword' => 'spp, kuliah, sekolah, buku, kursus, seminar, les, ukt, pendaftaran', 'type' => 'PENGELUARAN'],
+                ['name' => 'Sedekah & Donasi',    'keyword' => 'sedekah, infak, zakat, orang tua, ortu, angpao, kado, kirim ortu, donasi, sumbangan', 'type' => 'PENGELUARAN'],
+                ['name' => 'Tabungan & Simpanan', 'keyword' => 'tabungan, nabung, menabung, deposito, simpanan, celengan', 'type' => 'TABUNGAN'],
+            ],
             'daily' => [
                 ['name' => 'Makan',           'keyword' => 'makan, nasi, sarapan, makan siang, makan malam, jajan', 'type' => 'PENGELUARAN'],
                 ['name' => 'Transportasi',     'keyword' => 'ojek, grab, gojek, bensin, tol, travel, bus, krl',      'type' => 'PENGELUARAN'],
@@ -186,7 +200,17 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                 <h3 class="text-base lg:text-lg font-semibold text-gray-900 dark:text-slate-100">⚡ Preset Kategori</h3>
                 <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Tambah sekaligus kategori populer dengan sekali klik. Kategori yang sudah ada tidak akan ditambah dua kali.</p>
             </div>
-            <div class="p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="p-4 lg:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <form method="POST">
+                    <?= PahamFin_csrf_field() ?>
+                    <input type="hidden" name="action" value="add_preset">
+                    <input type="hidden" name="preset" value="all">
+                    <button type="submit" class="h-full w-full flex flex-col justify-center gap-2 px-5 py-4 border border-emerald-200 dark:border-emerald-800/50 bg-emerald-50/50 dark:bg-emerald-900/20 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl text-left transition relative group">
+                        <i class="ph ph-sparkle text-2xl text-emerald-500 dark:text-emerald-400 absolute right-4 top-4 opacity-40 group-hover:opacity-70 transition"></i>
+                        <span class="block font-semibold text-emerald-900 dark:text-emerald-300 text-sm flex items-center gap-1.5"><i class="ph ph-star-fill text-amber-500"></i> Lengkap (12 Kategori)</span>
+                        <span class="block text-xs text-emerald-700 dark:text-emerald-400">Gaji, Usaha, Makan, Bensin, Belanja, Tagihan, Hiburan, dll.</span>
+                    </button>
+                </form>
                 <form method="POST">
                     <?= PahamFin_csrf_field() ?>
                     <input type="hidden" name="action" value="add_preset">

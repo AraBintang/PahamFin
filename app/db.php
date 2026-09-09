@@ -528,6 +528,34 @@ function PahamFin_savings_goals(PDO $pdo, int $userId): array
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// ---- Seed Kategori Lengkap Otomatis ----
+function PahamFin_seed_default_categories(PDO $pdo, int $userId): void
+{
+    $defaultCategories = [
+        ['Gaji & Pendapatan',    'gaji,bonus,pendapatan,thr,salary,upah,komisi,hasil,insentif,transfer masuk', 'PEMASUKAN'],
+        ['Usaha & Freelance',   'omset,jualan,dagang,laku,untung,freelance,projek,project,bisnis,profit',      'PEMASUKAN'],
+        ['Investasi & Pasif',    'dividen,bunga,investasi,saham,crypto,cashback,hibah,hadiah,reksadana',         'PEMASUKAN'],
+        ['Makanan & Minuman',   'makan,minum,kopi,kfc,mcd,warteg,sate,bakso,nasi,beli makan,gofood,grabfood,cafe,jajan,snack,boba,sarapan,makan siang,makan malam', 'PENGELUARAN'],
+        ['Transportasi',        'bensin,gojek,grab,toll,tol,parkir,ongkir,ojek,bus,kereta,tiket,servis,oli,pertalite,pertamax,krl,travel',                     'PENGELUARAN'],
+        ['Belanja & Harian',    'belanja,shopee,tokopedia,baju,sepatu,grocery,alfamart,indomaret,mall,skincare,kosmetik,minimarket',                           'PENGELUARAN'],
+        ['Tagihan & Utilitas',  'listrik,air,wifi,internet,pulsa,token,kuota,pdam,kost,kontrakan,sewa,asuransi,bpjs,cicilan,kartu kredit,paylater',             'PENGELUARAN'],
+        ['Hiburan & Lifestyle', 'nonton,bioskop,netflix,spotify,game,topup,jalan,liburan,rekreasi,party,nongkrong,piknik',                                   'PENGELUARAN'],
+        ['Kesehatan & Perawatan','obat,dokter,rumah sakit,klinik,vitamin,apotek,gym,fitnes,salon,potong rambut',                                           'PENGELUARAN'],
+        ['Pendidikan & Kursus', 'spp,kuliah,sekolah,buku,kursus,seminar,les,ukt,pendaftaran',                                                                 'PENGELUARAN'],
+        ['Sedekah & Donasi',    'sedekah,infak,zakat,orang tua,ortu,angpao,kado,kirim ortu,donasi,sumbangan',                                                 'PENGELUARAN'],
+        ['Tabungan & Simpanan', 'tabungan,nabung,menabung,deposito,simpanan,celengan',                                                                      'TABUNGAN'],
+    ];
+
+    $check = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE user_id = ? AND LOWER(name) = LOWER(?)");
+    $stmt  = $pdo->prepare("INSERT INTO categories (user_id, name, keyword, type) VALUES (?, ?, ?, ?)");
+    foreach ($defaultCategories as $cat) {
+        $check->execute([$userId, $cat[0]]);
+        if ((int) $check->fetchColumn() === 0) {
+            $stmt->execute([$userId, $cat[0], $cat[1], $cat[2]]);
+        }
+    }
+}
+
 $user_id = null;
 if (isset($_SESSION['user_id'])) {
     $user_id = (int) $_SESSION['user_id'];

@@ -52,16 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->execute([$pending['name'], $pending['email'], $phoneInsert, $pending['password']])) {
                 $newId = (int) $pdo->lastInsertId();
                 
-                // Seed default categories
-                $seedCategories = [
-                    ['Makanan', 'makan,makan siang,kfc,mcd,warteg,nasi', 'PENGELUARAN'],
-                    ['Gaji', 'gaji,bonus,pendapatan,thr', 'PEMASUKAN'],
-                    ['Transportasi', 'ojol,grab,gojek,bensin,parkir', 'PENGELUARAN'],
-                ];
-                $seedStmt = $pdo->prepare("INSERT INTO categories (user_id, name, keyword, type) VALUES (?, ?, ?, ?)");
-                foreach ($seedCategories as $sc) {
-                    $seedStmt->execute([$newId, $sc[0], $sc[1], $sc[2]]);
-                }
+                // Seed default categories (lengkap)
+                PahamFin_seed_default_categories($pdo, $newId);
                 
                 unset($_SESSION['pending_reg']);
                 session_regenerate_id(true);

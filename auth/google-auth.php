@@ -142,15 +142,7 @@ function PahamFin_google_login(PDO $pdo, string $googleId, string $email, string
         $newId = (int) $pdo->lastInsertId();
 
         // Seed kategori default.
-        $seedCategories = [
-            ['Makanan', 'makan,makan siang,kfc,mcd,warteg,nasi', 'PENGELUARAN'],
-            ['Gaji', 'gaji,bonus,pendapatan,thr', 'PEMASUKAN'],
-            ['Transportasi', 'ojol,grab,gojek,bensin,parkir', 'PENGELUARAN'],
-        ];
-        $seedStmt = $pdo->prepare("INSERT INTO categories (user_id, name, keyword, type) VALUES (?, ?, ?, ?)");
-        foreach ($seedCategories as $sc) {
-            $seedStmt->execute([$newId, $sc[0], $sc[1], $sc[2]]);
-        }
+        PahamFin_seed_default_categories($pdo, $newId);
 
         $user = ['id' => $newId];
     }
