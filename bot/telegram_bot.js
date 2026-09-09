@@ -22,6 +22,7 @@ function loadEnv() {
         TELEGRAM_BOT_USERNAME: '',
         WEBHOOK_URL: 'http://pahamfin.softwaremahasiswa.com/webhook.php',
         PAHAMFIN_WEBHOOK_SECRET: '',
+        GEMINI_API_KEY: '',
     };
 
     const envFile = path.join(__dirname, '.env');
@@ -38,7 +39,7 @@ function loadEnv() {
 }
 
 const ENV = loadEnv();
-const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET } = ENV;
+const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET, GEMINI_API_KEY } = ENV;
 
 if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('MASUKKAN')) {
     console.error('❌ TELEGRAM_TOKEN belum dikonfigurasi di file bot/.env');
@@ -363,29 +364,107 @@ bot.on('message', async (msg) => {
 
 // ── Handler Foto: OCR struk belanja ───────────────────────────────────────────
 bot.on('photo', async (msg) => {
-    const chatId     = msg.chat.id;
-    const telegramId = String(chatId);
-    const name       = msg.from.first_name || 'Pengguna';
+    const chatId = msg.chat.id;
+    const telegramId = String(msg.from.id);
+    const senderName = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ') || 'Pengguna';
 
-    const reg = await checkRegistered(telegramId, name);
+    const reg = await checkRegistered(telegramId, senderName);
     if (!reg.registered) return replyNewAccount(chatId, reg);
 
-    // Ambil foto resolusi terbesar
-    const photos    = msg.photo;
-    const bestPhoto = photos[photos.length - 1];
-    const fileId    = bestPhoto.file_id; // eslint-disable-line no-unused-vars
-
     try {
-        await reply(chatId,
-            `📷 *Foto diterima!*\n\n` +
-            `Saat ini PahamFin belum bisa membaca struk otomatis.\n\n` +
-            `Kamu bisa catat manual dengan format:\n` +
-            `➤ \`makan siang 35000\`\n` +
-            `➤ \`belanja 150rb\`\n\n` +
-            `_Fitur scan struk otomatis sedang dalam pengembangan!_ 🚧`
-        );
+        if (!GEMINI_API_KEY) {
+            await reply(chatId,
+                `📷 *Foto diterima!*\n\n` +
+                `⚠️ *Fitur scan struk belum aktif* karena \`GEMINI_API_KEY\` belum diset di file \`bot/.env\`.\n\n` +
+                `Dapatkan API key gratis di: https://aistudio.google.com\n\n` +
+                `Kamu tetap bisa catat manual dengan teks:\n` +
+                `➤ \`makan 35000\`\n` +
+                `➤ \`belanja 150rb\``
+            );
+            return;
+        }
+
+        await reply(chatId, `🔍 *Sedang membaca foto struk belanjaan kamu dengan AI...* Mohon tunggu sebentar ⏳`);
+
+        // Ambil foto dengan resolusi tertinggi (terakhir di array photo)
+        const photoArr = msg.photo;
+        const fileId = photoArr[photoArr.length - 1].file_id;
+
+        // Download foto dari Telegram API
+        const fileStream = bot.getFileStream(fileId);
+        const chunks = [];
+        for await (const chunk of fileStream) {
+            chunks.push(chunk);
+        }
+        const buffer = Buffer.concat(chunks);
+        const base64Data = buffer.toString('base64');
+
+        // Panggil Gemini 1.5 Flash Vision
+        const { GoogleGenerativeAI } = require('@google/generative-ai');
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+        const prompt = `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
+Ekstrak informasi penting dan kembalikan HANYA format JSON valid tanpa tanda backtick atau teks lain.
+JSON Schema:
+{
+  "is_receipt": boolean (true jika gambar adalah struk/nota/bukti belanja),
+  "merchant": string (nama toko/merchant/keterangan belanja ringkas, contoh: "Indomaret", "KFC", "Kopi Kenangan", "Belanja Mini Market"),
+  "total_amount": number (total nominal belanja akhir angka murni tanpa titik/koma/Rp),
+  "items_summary": string (ringkasan 2-3 item belanjaan jika terlihat, pisah koma)
+}
+
+Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: "".`;
+
+        const imagePart = {
+            inlineData: {
+                data: base64Data,
+                mimeType: 'image/jpeg'
+            }
+        };
+
+        const result = await model.generateContent([prompt, imagePart]);
+        const responseText = result.response.text().trim();
+
+        // Clean JSON string jika ada markdown formatting
+        const cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        let parsed;
+        try {
+            parsed = JSON.parse(cleanJson);
+        } catch (e) {
+            console.error('Failed to parse Gemini JSON output:', responseText);
+            await reply(chatId, `⚠️ Gagal membaca struk. Pastikan foto struk terang, jelas, dan tidak buram.`);
+            return;
+        }
+
+        if (!parsed.is_receipt || !parsed.total_amount || parsed.total_amount <= 0) {
+            await reply(chatId, `⚠️ Gambar yang kamu kirim tidak terdeteksi sebagai struk belanjaan valid. Silakan kirim foto struk kasir yang jelas.`);
+            return;
+        }
+
+        const merchant = parsed.merchant || 'Belanja Struk';
+        const amount = parsed.total_amount;
+        const items = parsed.items_summary ? ` (${parsed.items_summary})` : '';
+        const fullMessage = `${merchant}${items} ${amount}`;
+
+        // Kirim data transaksi ke webhook PahamFin
+        const webhookRes = await callWebhook({
+            telegram_id: telegramId,
+            sender: senderName,
+            message: fullMessage,
+            amount: amount,
+            description: `${merchant}${items}`
+        });
+
+        if (webhookRes.data && webhookRes.data.message) {
+            await reply(chatId, `🧾 *Scan Struk Berhasil!*\n\n` + webhookRes.data.message);
+        } else {
+            await reply(chatId, `✅ *Struk Terbaca!*\n\n• **Keterangan:** ${merchant}\n• **Total:** Rp ${new Intl.NumberFormat('id-ID').format(amount)}\n\n_Transaksi berhasil dicatat!_`);
+        }
+
     } catch (err) {
-        console.error('Photo handler error:', err.message);
+        console.error('Photo handler error:', err);
+        await reply(chatId, `⚠️ Terjadi kesalahan saat memproses foto struk. Pastikan koneksi dan foto jelas.`);
     }
 });
 
