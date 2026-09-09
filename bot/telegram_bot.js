@@ -90,8 +90,11 @@ async function reply(chatId, text, keyboard) {
 
 /** Kirim request ke webhook PHP */
 async function callWebhook(payload) {
+    if (PAHAMFIN_WEBHOOK_SECRET) {
+        payload.key = PAHAMFIN_WEBHOOK_SECRET;
+    }
     const headers = {};
-if (PAHAMFIN_WEBHOOK_SECRET) {
+    if (PAHAMFIN_WEBHOOK_SECRET) {
         headers['X-PahamFin-Key'] = PAHAMFIN_WEBHOOK_SECRET;
     }
 

@@ -371,20 +371,35 @@ function PahamFin_bot_command(PDO $pdo, int $userId, string $action, string $des
 }
 
 try {
+    $rawInput = file_get_contents('php://input');
+    $payload = json_decode($rawInput, true);
+    if (!$payload || !is_array($payload)) {
+        $payload = $_POST;
+    }
+
     // Otentikasi webhook (shared secret)
     $secret = PahamFin_webhook_secret();
     if ($secret !== '') {
-        $sentKey = $_SERVER['HTTP_X_PahamFin_KEY'] ?? ($_GET['key'] ?? ($_POST['key'] ?? ''));
+        $allHeaders = function_exists('getallheaders') ? getallheaders() : [];
+        $headerKey = null;
+        foreach ($allHeaders as $hKey => $hVal) {
+            if (strtolower($hKey) === 'x-pahamfin-key') {
+                $headerKey = $hVal;
+                break;
+            }
+        }
+
+        $sentKey = $_SERVER['HTTP_X_PAHAMFIN_KEY'] ??
+                   ($_SERVER['HTTP_X_PAHAMFIN_KEY'] ??
+                   ($headerKey ??
+                   ($payload['key'] ??
+                   ($_GET['key'] ?? ($_POST['key'] ?? '')))));
+
         if (!is_string($sentKey) || !hash_equals($secret, $sentKey)) {
             http_response_code(401);
             echo json_encode(['success' => false, 'status' => 'error', 'message' => 'Unauthorized.']);
             exit;
         }
-    }
-
-    $payload = json_decode(file_get_contents('php://input'), true);
-    if (!$payload || !is_array($payload)) {
-        $payload = $_POST;
     }
 
     $message = trim((string) ($payload['message'] ?? ''));
