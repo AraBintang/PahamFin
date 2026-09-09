@@ -23,6 +23,7 @@ function loadEnv() {
         WEBHOOK_URL: 'http://pahamfin.softwaremahasiswa.com/webhook.php',
         PAHAMFIN_WEBHOOK_SECRET: '',
         GEMINI_API_KEY: '',
+        OPENAI_API_KEY: '',
     };
 
     const envFile = path.join(__dirname, '.env');
@@ -39,7 +40,7 @@ function loadEnv() {
 }
 
 const ENV = loadEnv();
-const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET, GEMINI_API_KEY } = ENV;
+const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET, GEMINI_API_KEY, OPENAI_API_KEY } = ENV;
 
 if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('MASUKKAN')) {
     console.error('❌ TELEGRAM_TOKEN belum dikonfigurasi di file bot/.env');
@@ -372,11 +373,10 @@ bot.on('photo', async (msg) => {
     if (!reg.registered) return replyNewAccount(chatId, reg);
 
     try {
-        if (!GEMINI_API_KEY) {
+        if (!OPENAI_API_KEY && !GEMINI_API_KEY) {
             await reply(chatId,
                 `📷 *Foto diterima!*\n\n` +
-                `⚠️ *Fitur scan struk belum aktif* karena \`GEMINI_API_KEY\` belum diset di file \`bot/.env\`.\n\n` +
-                `Dapatkan API key gratis di: https://aistudio.google.com\n\n` +
+                `⚠️ *Fitur scan struk belum aktif* karena API Key AI belum diset di file \`bot/.env\`.\n\n` +
                 `Kamu tetap bisa catat manual dengan teks:\n` +
                 `➤ \`makan 35000\`\n` +
                 `➤ \`belanja 150rb\``
@@ -384,7 +384,7 @@ bot.on('photo', async (msg) => {
             return;
         }
 
-        await reply(chatId, `🔍 *Sedang membaca foto struk belanjaan kamu dengan AI...* Mohon tunggu sebentar ⏳`);
+        await reply(chatId, `🔍 *Sedang membaca foto struk belanjaan kamu dengan ChatGPT AI...* Mohon tunggu sebentar ⏳`);
 
         // Ambil foto dengan resolusi tertinggi (terakhir di array photo)
         const photoArr = msg.photo;
@@ -399,12 +399,52 @@ bot.on('photo', async (msg) => {
         const buffer = Buffer.concat(chunks);
         const base64Data = buffer.toString('base64');
 
-        // Panggil Gemini 1.5 Flash Vision
-        const { GoogleGenerativeAI } = require('@google/generative-ai');
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        let cleanJson = '';
 
-        const prompt = `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
+        if (OPENAI_API_KEY) {
+            const OpenAI = require('openai');
+            const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
+            const response = await openai.chat.completions.create({
+                model: "gpt-4o-mini",
+                messages: [
+                    {
+                        role: "user",
+                        content: [
+                            {
+                                type: "text",
+                                text: `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
+Ekstrak informasi penting dan kembalikan HANYA format JSON valid tanpa tanda backtick atau teks lain.
+JSON Schema:
+{
+  "is_receipt": boolean (true jika gambar adalah struk/nota/bukti belanja),
+  "merchant": string (nama toko/merchant/keterangan belanja ringkas, contoh: "Indomaret", "KFC", "Kopi Kenangan", "Belanja Mini Market"),
+  "total_amount": number (total nominal belanja akhir angka murni tanpa titik/koma/Rp),
+  "items_summary": string (ringkasan 2-3 item belanjaan jika terlihat, pisah koma)
+}
+
+Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: "".`
+                            },
+                            {
+                                type: "image_url",
+                                image_url: {
+                                    url: `data:image/jpeg;base64,${base64Data}`
+                                }
+                            }
+                        ]
+                    }
+                ],
+                response_format: { type: "json_object" }
+            });
+
+            cleanJson = response.choices[0].message.content.trim();
+        } else {
+            // Fallback ke Gemini Vision
+            const { GoogleGenerativeAI } = require('@google/generative-ai');
+            const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+            const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+            const prompt = `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
 Ekstrak informasi penting dan kembalikan HANYA format JSON valid tanpa tanda backtick atau teks lain.
 JSON Schema:
 {
@@ -416,23 +456,23 @@ JSON Schema:
 
 Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: "".`;
 
-        const imagePart = {
-            inlineData: {
-                data: base64Data,
-                mimeType: 'image/jpeg'
-            }
-        };
+            const imagePart = {
+                inlineData: {
+                    data: base64Data,
+                    mimeType: 'image/jpeg'
+                }
+            };
 
-        const result = await model.generateContent([prompt, imagePart]);
-        const responseText = result.response.text().trim();
+            const result = await model.generateContent([prompt, imagePart]);
+            const responseText = result.response.text().trim();
+            cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+        }
 
-        // Clean JSON string jika ada markdown formatting
-        const cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
         let parsed;
         try {
             parsed = JSON.parse(cleanJson);
         } catch (e) {
-            console.error('Failed to parse Gemini JSON output:', responseText);
+            console.error('Failed to parse AI JSON output:', cleanJson);
             await reply(chatId, `⚠️ Gagal membaca struk. Pastikan foto struk terang, jelas, dan tidak buram.`);
             return;
         }
