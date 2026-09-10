@@ -348,31 +348,38 @@ function PahamFin_bot_command(PDO $pdo, int $userId, string $action, string $des
 
     if ($action === 'help' || $action === 'start') {
         $msg  = "🤖 *Panduan PahamFin Bot*\n\n";
-        $msg .= "*📊 Lihat Info:*\n";
-        $msg .= "`/saldo` — Cek saldo & ringkasan\n";
-        $msg .= "`/laporan` — Laporan per kategori\n";
-        $msg .= "`/riwayat` — 5 transaksi terakhir\n";
-        $msg .= "`/kategori` — Daftar kategori & keyword\n";
-        $msg .= "`/tabungan` — Progres target tabungan\n";
-        $msg .= "`/hutang` — Hutang & piutang aktif\n";
-        $msg .= "`/dompet` — Saldo semua dompet\n";
-        $msg .= "`/pengingat` — Pengingat aktif\n\n";
-        $msg .= "*✍️ Catat Transaksi:*\n";
-        $msg .= "`makan 50000` — Catat pengeluaran\n";
-        $msg .= "`makan 50000 gopay` — Catat + via dompet\n";
-        $msg .= "`gaji 5000000` — Catat pemasukan\n\n";
-        $msg .= "*💰 Tabungan:*\n";
-        $msg .= "`nabung rumah 200000` — Tambah ke tabungan\n";
-        $msg .= "`target liburan 5000000` — Buat target baru\n\n";
+        $msg .= "*📊 Perintah Ringkasan:*\n";
+        $msg .= "• `/saldo` — Cek saldo & ringkasan bulanan\n";
+        $msg .= "• `/laporan` — Laporan pengeluaran per kategori\n";
+        $msg .= "• `/riwayat` — 5 transaksi terakhir\n";
+        $msg .= "• `/tabungan` — Progres target tabungan kamu\n";
+        $msg .= "• `/dompet` — Cek rincian saldo semua dompet\n";
+        $msg .= "• `/hutang` — Daftar hutang & piutang aktif\n";
+        $msg .= "• `/kategori` — Daftar kategori & keyword bot\n";
+        $msg .= "• `/pengingat` — Pengingat aktif\n\n";
+
+        $msg .= "*✍️ Catat Transaksi Otomatis:*\n";
+        $msg .= "• `makan 50000` — Pengeluaran makanan\n";
+        $msg .= "• `makan 50k gopay` — Pengeluaran via dompet Gopay\n";
+        $msg .= "• `gaji 5jt bca` — Pemasukan ke dompet BCA\n";
+        $msg .= "• `uang saku 100rb` — Otomatis masuk Pemasukan 🟢\n\n";
+
+        $msg .= "*🎯 Target Tabungan & Menabung:*\n";
+        $msg .= "• `nabung rumah harga 300jt baru kekumpul 2jt` — Buat target baru + isi dana awal\n";
+        $msg .= "• `target mobil 150jt` — Buat target tabungan baru\n";
+        $msg .= "• `nabung rumah 500rb` — Tambah setoran ke target Rumah\n\n";
+
+        $msg .= "*👛 Kelola Dompet:*\n";
+        $msg .= "• `add dompet Gopay saldo 500k` — Buat dompet baru\n";
+        $msg .= "• `topup gopay 100k` — Tambah saldo dompet\n\n";
+
         $msg .= "*🤝 Hutang & Piutang:*\n";
-        $msg .= "`utang budi 50000` — Catat kamu berhutang\n";
-        $msg .= "`piutang andi 50000` — Catat orang berhutang\n";
-        $msg .= "`lunas budi` — Tandai lunas\n\n";
-        $msg .= "*💼 Anggaran:*\n";
-        $msg .= "`anggaran makan 1000000` — Set anggaran bulanan\n\n";
-        $msg .= "*📝 Pengingat:*\n";
-        $msg .= "`/done 3` — Tandai pengingat ID 3 selesai\n\n";
-        $msg .= "_Ketik `/help` kapan saja untuk melihat ini._";
+        $msg .= "• `utang budi 50000` — Catat kamu berhutang ke Budi\n";
+        $msg .= "• `piutang andi 100k` — Catat Andi berhutang ke kamu\n";
+        $msg .= "• `lunas budi` — Tandai hutang Budi selesai/lunas\n\n";
+
+        $msg .= "*📷 Scan Struk / Nota:* Kirim foto struk pembayaran, bot akan otomatis mencatatnya dengan AI!\n\n";
+        $msg .= "_Ketik `/help` kapan saja untuk melihat panduan ini._";
         return ['success' => true, 'message' => $msg];
     }
 
