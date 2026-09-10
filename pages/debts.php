@@ -139,12 +139,18 @@ $totalLent = (float)($summary['total_lent'] ?? 0);
             <div>
                 <h3 class="text-base lg:text-lg font-semibold text-gray-900 dark:text-slate-100">Hutang & Piutang 🤝</h3>
                 <div class="flex gap-2 mt-2">
-                    <?php foreach (['UNPAID' => 'Belum Lunas', 'PAID' => 'Lunas', 'ALL' => 'Semua'] as $s => $label): ?>
-                    <a href="debts.php?status=<?= $s ?>" 
-                       class="text-xs px-3 py-1 rounded-full font-medium transition <?= $filter === $s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 dark:text-slate-400 hover:bg-gray-200' ?>">
-                        <?= $label ?>
+                    <a href="debts.php?status=UNPAID" 
+                       class="text-xs px-3.5 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 <?= $filter === 'UNPAID' ? 'bg-rose-600 text-white shadow-md shadow-rose-900/20' : 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/50' ?>">
+                        <span class="w-2 h-2 rounded-full <?= $filter === 'UNPAID' ? 'bg-white' : 'bg-rose-500' ?>"></span> Belum Lunas
                     </a>
-                    <?php endforeach; ?>
+                    <a href="debts.php?status=PAID" 
+                       class="text-xs px-3.5 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 <?= $filter === 'PAID' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/20' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50' ?>">
+                        <span class="w-2 h-2 rounded-full <?= $filter === 'PAID' ? 'bg-white' : 'bg-emerald-500' ?>"></span> Lunas
+                    </a>
+                    <a href="debts.php?status=ALL" 
+                       class="text-xs px-3.5 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 <?= $filter === 'ALL' ? 'bg-blue-600 text-white shadow-md shadow-blue-900/20' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50' ?>">
+                        <span class="w-2 h-2 rounded-full <?= $filter === 'ALL' ? 'bg-white' : 'bg-blue-500' ?>"></span> Semua
+                    </a>
                 </div>
             </div>
             <button @click="openCreate()" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 flex items-center gap-2">
