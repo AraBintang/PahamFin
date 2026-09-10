@@ -615,6 +615,13 @@ try {
     }
 
     if (!$category) {
+        // Fallback otomatis ke kategori PENGELUARAN pertama pengguna agar transaksi dari foto struk tidak pernah gagal
+        $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? AND type = 'PENGELUARAN' ORDER BY id ASC LIMIT 1");
+        $catStmt->execute([$userId]);
+        $category = $catStmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    if (!$category) {
         throw new RuntimeException("Kategori tidak ditemukan untuk: \"{$finalDescription}\". Atur keyword di dashboard.");
     }
 

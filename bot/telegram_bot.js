@@ -421,6 +421,16 @@ JSON Schema:
 
 Jika gambar BUKAN struk/nota/bukti bayar valid, set is_receipt: false, total_amount: 0, merchant: "".`;
 
+        // Deteksi MIME type sesungguhnya dari binary buffer (PNG vs JPEG vs WEBP)
+        let mimeType = 'image/jpeg';
+        if (buffer && buffer.length >= 4) {
+            if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) {
+                mimeType = 'image/png';
+            } else if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46) {
+                mimeType = 'image/webp';
+            }
+        }
+
         if (OPENAI_API_KEY) {
             try {
                 const OpenAI = require('openai');
@@ -436,7 +446,7 @@ Jika gambar BUKAN struk/nota/bukti bayar valid, set is_receipt: false, total_amo
                                 {
                                     type: "image_url",
                                     image_url: {
-                                        url: `data:image/jpeg;base64,${base64Data}`,
+                                        url: `data:${mimeType};base64,${base64Data}`,
                                         detail: "auto"
                                     }
                                 }
@@ -453,7 +463,7 @@ Jika gambar BUKAN struk/nota/bukti bayar valid, set is_receipt: false, total_amo
                     const { GoogleGenerativeAI } = require('@google/generative-ai');
                     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
                     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-                    const imagePart = { inlineData: { data: base64Data, mimeType: 'image/jpeg' } };
+                    const imagePart = { inlineData: { data: base64Data, mimeType: mimeType } };
                     const result = await model.generateContent([systemPrompt, imagePart]);
                     cleanJson = result.response.text().trim().replace(/```json/gi, '').replace(/```/g, '').trim();
                 } else {
@@ -465,7 +475,7 @@ Jika gambar BUKAN struk/nota/bukti bayar valid, set is_receipt: false, total_amo
             const { GoogleGenerativeAI } = require('@google/generative-ai');
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-            const imagePart = { inlineData: { data: base64Data, mimeType: 'image/jpeg' } };
+            const imagePart = { inlineData: { data: base64Data, mimeType: mimeType } };
             const result = await model.generateContent([systemPrompt, imagePart]);
             const responseText = result.response.text().trim();
             cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
