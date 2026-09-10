@@ -65,7 +65,7 @@ define('PahamFin_TELEGRAM_ADMIN_ID', getenv('PahamFin_TELEGRAM_ADMIN_ID') ?: '')
  * ------------------------------------------------------------------ */
 // Kunci rahasia bersama untuk otentikasi panggilan dari bot ke webhook.
 // Bot mengirim header `X-PahamFin-Key`; webhook menolak bila tidak cocok.
-define('PahamFin_WEBHOOK_SECRET', getenv('PahamFin_WEBHOOK_SECRET') ?: 'UbahIniDenganKunciRahasiaPanjang');
+define('PahamFin_WEBHOOK_SECRET', getenv('PahamFin_WEBHOOK_SECRET') ?: 'PahamfinSoftwareMahasiswa2026');
 
 /* ------------------------------------------------------------------
  * DIGITALOCEAN — BOT SERVER
