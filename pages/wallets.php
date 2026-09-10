@@ -98,7 +98,31 @@ unset($_SESSION['flash_msg']);
 <div class="p-3 rounded-lg bg-<?= $msgType ?>-50 border border-<?= $msgType ?>-200 text-<?= $msgType ?>-700 text-sm"><?= htmlspecialchars($msg) ?></div>
 <?php endif; ?>
 
-<div x-data="{ showForm: <?= $editWallet ? 'true' : 'false' ?>, showDelete: false, deleteId: null, showTopup: false, topupId: null }">
+<div x-data="{ 
+    showForm: <?= $editWallet ? 'true' : 'false' ?>, 
+    isEdit: <?= $editWallet ? 'true' : 'false' ?>,
+    editId: <?= (int)($editWallet['id'] ?? 0) ?>,
+    editName: '<?= htmlspecialchars($editWallet['name'] ?? '', ENT_QUOTES) ?>',
+    editBalance: '<?= $editWallet ? (float)$editWallet['starting_balance'] : '' ?>',
+    showDelete: false, 
+    deleteId: null, 
+    showTopup: false, 
+    topupId: null,
+    openAdd() {
+        this.isEdit = false;
+        this.editId = 0;
+        this.editName = '';
+        this.editBalance = '';
+        this.showForm = true;
+    },
+    openEdit(w) {
+        this.isEdit = true;
+        this.editId = w.id;
+        this.editName = w.name;
+        this.editBalance = w.starting_balance;
+        this.showForm = true;
+    }
+}">
     <div class="grid grid-cols-1 gap-6">
         <!-- Kartu-kartu dompet -->
         <div class="glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
@@ -107,7 +131,7 @@ unset($_SESSION['flash_msg']);
                     <h3 class="text-base lg:text-lg font-semibold text-gray-900 dark:text-slate-100">Dompet Saya 💳</h3>
                     <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Lacak saldo di setiap dompet (Tunai, BCA, Gopay, dll)</p>
                 </div>
-                <button @click="showForm = true" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 flex items-center gap-2">
+                <button @click="openAdd()" class="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 flex items-center gap-2 transition">
                     <i class="ph ph-plus-circle text-lg"></i> Tambah Dompet
                 </button>
             </div>
@@ -133,6 +157,11 @@ unset($_SESSION['flash_msg']);
                     $balance = $w['starting_balance'] + $w['tx_net'];
                     $balanceFmt = number_format($balance, 0, ',', '.');
                     $startFmt = number_format($w['starting_balance'], 0, ',', '.');
+                    $wJson = htmlspecialchars(json_encode([
+                        'id' => (int)$w['id'],
+                        'name' => $w['name'],
+                        'starting_balance' => (float)$w['starting_balance']
+                    ]), ENT_QUOTES, 'UTF-8');
                 ?>
                 <div class="relative overflow-hidden rounded-2xl border <?= $color['border'] ?> border-white/20
                     bg-gradient-to-br <?= $color['gradient'] ?> <?= $color['dark_from'] ?> <?= $color['dark_to'] ?>
@@ -147,10 +176,10 @@ unset($_SESSION['flash_msg']);
                             <i class="ph ph-wallet text-xl text-white"></i>
                         </div>
                         <div class="flex gap-1">
-                            <a href="wallets.php?edit_id=<?= $w['id'] ?>"
+                            <button @click='openEdit(<?= $wJson ?>)'
                                 class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/20 dark:bg-white/10 hover:bg-white/30 dark:hover:bg-white/20 text-white transition" title="Edit">
                                 <i class="ph ph-pencil-simple text-sm"></i>
-                            </a>
+                            </button>
                             <button @click="deleteId = <?= $w['id'] ?>; showDelete = true"
                                 class="w-7 h-7 flex items-center justify-center rounded-lg bg-white/20 dark:bg-white/10 hover:bg-rose-500/40 dark:hover:bg-rose-500/30 text-white transition" title="Hapus">
                                 <i class="ph ph-trash text-sm"></i>
@@ -204,16 +233,9 @@ unset($_SESSION['flash_msg']);
     </div>
 
     <!-- Modal Hapus -->
-    <div x-show="showDelete" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="showDelete" x-transition.opacity @click="showDelete = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div x-show="showDelete"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-90"
-             x-transition:enter-end="opacity-100 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 scale-100"
-             x-transition:leave-end="opacity-0 scale-90"
-             class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10 text-center">
+    <div x-show="showDelete" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div @click="showDelete = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10 text-center">
             <div class="w-14 h-14 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ph ph-trash text-2xl text-red-600 dark:text-red-400"></i>
             </div>
@@ -230,14 +252,11 @@ unset($_SESSION['flash_msg']);
             </div>
         </div>
     </div>
+
     <!-- Modal Top Up Saldo -->
-    <div x-show="showTopup" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="showTopup" x-transition.opacity @click="showTopup = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div x-show="showTopup"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 scale-90"
-             x-transition:enter-end="opacity-100 scale-100"
-             class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10">
+    <div x-show="showTopup" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div @click="showTopup = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10">
             <div class="flex items-center justify-between mb-5">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100">Tambah Saldo Dompet</h3>
                 <button @click="showTopup = false" class="text-gray-400 hover:text-gray-600 dark:text-slate-400"><i class="ph ph-x text-xl"></i></button>
@@ -261,45 +280,36 @@ unset($_SESSION['flash_msg']);
     </div>
 
     <!-- Modal Tambah / Edit Dompet -->
-    <div x-show="showForm" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="showForm" x-transition.opacity @click="showForm = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div x-show="showForm"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-             x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-             class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-md p-6 z-10">
+    <div x-show="showForm" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div @click="showForm = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-md p-6 z-10">
             <div class="flex items-center justify-between mb-5">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100"><?= $editWallet ? 'Edit Dompet' : 'Tambah Dompet Baru' ?></h3>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-slate-100" x-text="isEdit ? 'Edit Dompet' : 'Tambah Dompet Baru'"></h3>
                 <button @click="showForm = false" class="text-gray-400 hover:text-gray-600 dark:text-slate-400">
                     <i class="ph ph-x text-xl"></i>
                 </button>
             </div>
             <form method="POST" class="space-y-4">
                 <?= PahamFin_csrf_field() ?>
-                <input type="hidden" name="action" value="<?= $editWallet ? 'edit' : 'create' ?>">
-                <?php if ($editWallet): ?>
-                <input type="hidden" name="id" value="<?= $editWallet['id'] ?>">
-                <?php endif; ?>
+                <input type="hidden" name="action" :value="isEdit ? 'edit' : 'create'">
+                <input type="hidden" name="id" :value="editId">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Nama Dompet</label>
                     <input type="text" name="name" placeholder="Tunai, BCA, Gopay, OVO, DANA..." required
-                           value="<?= htmlspecialchars($editWallet['name'] ?? '') ?>"
-                           class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                           x-model="editName"
+                           class="w-full border border-gray-300 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Saldo Awal (Rp)</label>
                     <input type="number" name="starting_balance" placeholder="0" min="0"
-                           value="<?= $editWallet ? (float)$editWallet['starting_balance'] : '' ?>"
-                           class="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                           x-model="editBalance"
+                           class="w-full border border-gray-300 dark:border-slate-700 dark:bg-slate-900/50 dark:text-white rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
                     <p class="text-xs text-gray-400 mt-1">Isi sesuai saldo awal saat ini (bisa dikosongi jika mulai dari 0)</p>
                 </div>
                 <div class="flex gap-3 pt-2">
-                    <button type="button" @click="showForm = false" class="flex-1 px-4 py-2.5 text-gray-600 dark:text-slate-400 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition">Batal</button>
-                    <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow transition">
-                        <?= $editWallet ? 'Simpan Perubahan' : 'Tambah Dompet' ?>
+                    <button type="button" @click="showForm = false" class="flex-1 px-4 py-2.5 text-gray-600 dark:text-slate-400 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 rounded-xl font-medium transition">Batal</button>
+                    <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow transition"
+                            x-text="isEdit ? 'Simpan Perubahan' : 'Tambah Dompet'">
                     </button>
                 </div>
             </form>

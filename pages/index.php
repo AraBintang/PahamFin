@@ -294,16 +294,16 @@ $upcomingReminders = $stmtRem->fetchAll(PDO::FETCH_ASSOC);
         <div class="space-y-3 relative">
             <?php foreach ($budgetProgress as $bp):
                 $pct = $bp['limit_amount'] > 0 ? min(100, round(($bp['spent'] / $bp['limit_amount']) * 100)) : 0;
-                $barColor = $pct >= 90 ? 'bg-rose-50 dark:bg-rose-900/300' : ($pct >= 70 ? 'bg-amber-400' : 'bg-emerald-50 dark:bg-emerald-900/300');
+                $barColor = $pct >= 90 ? 'bg-rose-500' : ($pct >= 70 ? 'bg-amber-500' : 'bg-emerald-500');
                 $textColor = $pct >= 90 ? 'text-rose-600 dark:text-rose-400' : ($pct >= 70 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400');
             ?>
             <div>
-                <div class="flex justify-between text-xs mb-1">
+                <div class="flex justify-between text-xs mb-1.5">
                     <span class="font-medium text-gray-700 dark:text-slate-300"><?= htmlspecialchars($bp['cat_name']) ?></span>
-                    <span class="<?= $textColor ?> font-semibold"><?= $pct ?>% · Rp <?= number_format($bp['spent'],0,',','.') ?> / <?= number_format($bp['limit_amount'],0,',','.') ?></span>
+                    <span class="<?= $textColor ?> font-bold"><?= $pct ?>% · Rp <?= number_format($bp['spent'],0,',','.') ?> / <?= number_format($bp['limit_amount'],0,',','.') ?></span>
                 </div>
-                <div class="w-full bg-gray-200/50 dark:bg-slate-700/50 rounded-full h-2.5 overflow-hidden">
-                    <div class="<?= $barColor ?> h-2.5 rounded-full transition-all" style="width: <?= $pct ?>%"></div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div class="<?= $barColor ?> h-3 rounded-full transition-all duration-500 shadow-sm" style="width: <?= max(4, $pct) ?>%"></div>
                 </div>
             </div>
             <?php endforeach; ?>
