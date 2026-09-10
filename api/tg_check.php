@@ -29,13 +29,23 @@ if ($user) {
     $token = bin2hex(random_bytes(16));
     
     // Simpan token sementara ke tabel tg_link_tokens (auto-expire 10 menit)
+    // Buat tabel jika belum ada, kompatibel SQLite & MySQL
     try {
-        $pdo->exec("CREATE TABLE IF NOT EXISTS tg_link_tokens (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            telegram_id VARCHAR(50) NOT NULL,
-            token VARCHAR(64) NOT NULL UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )");
+        if ($databaseDriver === 'sqlite') {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS tg_link_tokens (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                telegram_id VARCHAR(50) NOT NULL,
+                token VARCHAR(64) NOT NULL UNIQUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )");
+        } else {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS tg_link_tokens (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                telegram_id VARCHAR(50) NOT NULL,
+                token VARCHAR(64) NOT NULL UNIQUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )");
+        }
     } catch (Throwable $e) {}
     
     // Hapus token lama milik telegram_id ini

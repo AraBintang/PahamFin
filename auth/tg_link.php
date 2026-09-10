@@ -21,9 +21,13 @@ $botName = PahamFin_TELEGRAM_BOT_USERNAME;
 if ($token === '') {
     $error = 'Link tidak valid. Minta link baru dari bot Telegram.';
 } else {
-    // Cek token (max 10 menit)
+    // Cek token (max 10 menit), kompatibel SQLite & MySQL
     try {
-        $stmt = $pdo->prepare("SELECT * FROM tg_link_tokens WHERE token = ? AND created_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1");
+        if ($databaseDriver === 'sqlite') {
+            $stmt = $pdo->prepare("SELECT * FROM tg_link_tokens WHERE token = ? AND created_at > datetime('now', '-10 minutes') LIMIT 1");
+        } else {
+            $stmt = $pdo->prepare("SELECT * FROM tg_link_tokens WHERE token = ? AND created_at > DATE_SUB(NOW(), INTERVAL 10 MINUTE) LIMIT 1");
+        }
         $stmt->execute([$token]);
         $linkToken = $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (Throwable $e) {
