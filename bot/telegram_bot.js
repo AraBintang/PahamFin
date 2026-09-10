@@ -583,13 +583,20 @@ async function checkAutoReminders() {
 setTimeout(checkAutoReminders, 15000);
 setInterval(checkAutoReminders, 30 * 60 * 1000);
 
+// ── Keep-Alive Heartbeat Pinger (Cegah Hostinger Shared Hosting me-kill idle process) ──
+setInterval(() => {
+    try {
+        bot.getMe().then(() => {
+            // Heartbeat OK
+        }).catch(() => {});
+    } catch (e) {}
+}, 2 * 60 * 1000);
+
 // ── Global Error Handlers (bot tidak crash) ────────────────────────────────────
 bot.on('polling_error', (err) => {
     // 409 = ada instance bot lain — hentikan proses ini agar tidak konflik
     if (err.code === 'ETELEGRAM' && err.message.includes('409')) {
         console.error('❌ CONFLICT 409: Ada instance bot lain yang masih berjalan!');
-        console.error('   Tutup semua instance lain lalu jalankan ulang bot ini.');
-        console.error('   Cara cepat: jalankan "stop-bot.bat" dulu, baru "start-bot.bat"');
         bot.stopPolling();
         process.exit(1);
     }
@@ -601,7 +608,6 @@ bot.on('error', (err) => {
 });
 
 process.on('unhandledRejection', (reason) => {
-    // Tangkap error inline keyboard "Wrong HTTP URL" agar tidak crash
     if (reason && String(reason).includes('Wrong HTTP URL')) {
         console.warn('⚠️  Inline keyboard URL tidak valid (mungkin masih localhost). Dilewati.');
         return;
