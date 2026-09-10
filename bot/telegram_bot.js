@@ -400,6 +400,22 @@ bot.on('photo', async (msg) => {
         const base64Data = buffer.toString('base64');
 
         let cleanJson = '';
+        const systemPrompt = `Analisis gambar ini yang berisi foto struk, nota, bukti transfer, atau bukti pembayaran QRIS/ShopeePay/Gopay/OVO/E-Wallet.
+Ekstrak informasi penting dan kembalikan HANYA format JSON valid.
+
+PENTING UNTUK NOMINAL:
+Di Indonesia, titik (.) pada nominal seperti 30.210, 18.000, 49.000, 66.500 adalah pemisah ribuan (artinya 30210 rupiah, 18000 rupiah, 49000 rupiah, 66500 rupiah).
+Wajib kembalikan total_amount sebagai integer murni Rupiah tanpa titik dan tanpa koma (contoh: 30210, 18000, 49000, 66500).
+
+JSON Schema:
+{
+  "is_receipt": boolean (set true jika gambar adalah struk, nota, atau bukti pembayaran valid),
+  "merchant": string (nama toko/merchant/penerima/keterangan transaksi ringkas, contoh: "PASAR CELL", "Kedai Risol", "PBH Sirajudin", "Isi Saldo ShopeePay"),
+  "total_amount": number (total nominal murni dalam Rupiah integer, contoh: 30210, 18000, 49000, 66500),
+  "items_summary": string (ringkasan item jika ada, pisah koma)
+}
+
+Jika gambar BUKAN struk/nota/bukti bayar, set is_receipt: false, total_amount: 0, merchant: "".`;
 
         if (OPENAI_API_KEY) {
             try {
@@ -412,24 +428,12 @@ bot.on('photo', async (msg) => {
                         {
                             role: "user",
                             content: [
-                                {
-                                    type: "text",
-                                    text: `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
-Ekstrak informasi penting dan kembalikan HANYA format JSON valid tanpa tanda backtick atau teks lain.
-JSON Schema:
-{
-  "is_receipt": boolean (true jika gambar adalah struk/nota/bukti belanja),
-  "merchant": string (nama toko/merchant/keterangan belanja ringkas, contoh: "Indomaret", "KFC", "Kopi Kenangan", "Belanja Mini Market"),
-  "total_amount": number (total nominal belanja akhir angka murni tanpa titik/koma/Rp),
-  "items_summary": string (ringkasan 2-3 item belanjaan jika terlihat, pisah koma)
-}
-
-Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: "".`
-                                },
+                                { type: "text", text: systemPrompt },
                                 {
                                     type: "image_url",
                                     image_url: {
-                                        url: `data:image/jpeg;base64,${base64Data}`
+                                        url: `data:image/jpeg;base64,${base64Data}`,
+                                        detail: "low"
                                     }
                                 }
                             ]
@@ -445,9 +449,8 @@ Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: 
                     const { GoogleGenerativeAI } = require('@google/generative-ai');
                     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
                     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-                    const prompt = `Analisis foto struk belanjaan ini. Kembalikan JSON valid: {"is_receipt": true, "merchant": "Nama Toko", "total_amount": 10000, "items_summary": "Item"}`;
                     const imagePart = { inlineData: { data: base64Data, mimeType: 'image/jpeg' } };
-                    const result = await model.generateContent([prompt, imagePart]);
+                    const result = await model.generateContent([systemPrompt, imagePart]);
                     cleanJson = result.response.text().trim().replace(/```json/gi, '').replace(/```/g, '').trim();
                 } else {
                     throw openAiErr;
@@ -458,27 +461,8 @@ Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: 
             const { GoogleGenerativeAI } = require('@google/generative-ai');
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
             const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
-            const prompt = `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
-Ekstrak informasi penting dan kembalikan HANYA format JSON valid tanpa tanda backtick atau teks lain.
-JSON Schema:
-{
-  "is_receipt": boolean (true jika gambar adalah struk/nota/bukti belanja),
-  "merchant": string (nama toko/merchant/keterangan belanja ringkas, contoh: "Indomaret", "KFC", "Kopi Kenangan", "Belanja Mini Market"),
-  "total_amount": number (total nominal belanja akhir angka murni tanpa titik/koma/Rp),
-  "items_summary": string (ringkasan 2-3 item belanjaan jika terlihat, pisah koma)
-}
-
-Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: "".`;
-
-            const imagePart = {
-                inlineData: {
-                    data: base64Data,
-                    mimeType: 'image/jpeg'
-                }
-            };
-
-            const result = await model.generateContent([prompt, imagePart]);
+            const imagePart = { inlineData: { data: base64Data, mimeType: 'image/jpeg' } };
+            const result = await model.generateContent([systemPrompt, imagePart]);
             const responseText = result.response.text().trim();
             cleanJson = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
         }
@@ -492,13 +476,21 @@ Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: 
             return;
         }
 
-        if (!parsed.is_receipt || !parsed.total_amount || parsed.total_amount <= 0) {
-            await reply(chatId, `⚠️ Gambar yang kamu kirim tidak terdeteksi sebagai struk belanjaan valid. Silakan kirim foto struk kasir yang jelas.`);
+        let rawAmount = Number(parsed.total_amount);
+        if (isNaN(rawAmount)) rawAmount = 0;
+
+        // Failsafe jika AI membaca titik sebagai pecahan (misal 18.00 -> 18)
+        if (rawAmount > 0 && rawAmount < 1000) {
+            rawAmount = Math.round(rawAmount * 1000);
+        }
+        const amount = Math.round(rawAmount);
+
+        if (!parsed.is_receipt || amount <= 0) {
+            await reply(chatId, `⚠️ Gambar yang kamu kirim tidak terdeteksi sebagai struk/bukti bayar valid. Silakan kirim foto struk kasir atau screenshot bukti bayar yang jelas.`);
             return;
         }
 
         const merchant = parsed.merchant || 'Belanja Struk';
-        const amount = parsed.total_amount;
         const items = parsed.items_summary ? ` (${parsed.items_summary})` : '';
         const fullMessage = `${merchant}${items} ${amount}`;
 
