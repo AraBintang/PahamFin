@@ -26,14 +26,20 @@ function loadEnv() {
         OPENAI_API_KEY: '',
     };
 
-    // Baca file .env lokal jika ada (untuk development)
-    const envFile = path.join(__dirname, '.env');
-    if (fs.existsSync(envFile)) {
-        const lines = fs.readFileSync(envFile, 'utf8').split(/\r?\n/);
-        for (const line of lines) {
-            const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-            if (!m) continue;
-            defaults[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
+    // Baca file .env lokal — coba di ./bot/.env (Railway root) atau ./.env (dalam bot/)
+    const envCandidates = [
+        path.join(__dirname, '.env'),           // local: bot/.env
+        path.join(__dirname, 'bot', '.env'),    // Railway root: /bot/.env
+    ];
+    for (const envFile of envCandidates) {
+        if (fs.existsSync(envFile)) {
+            const lines = fs.readFileSync(envFile, 'utf8').split(/\r?\n/);
+            for (const line of lines) {
+                const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+                if (!m) continue;
+                defaults[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
+            }
+            break; // Pakai file pertama yang ditemukan
         }
     }
 
