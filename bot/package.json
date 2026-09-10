@@ -4,6 +4,7 @@
   "description": "PahamFin - WhatsApp & Telegram Bot untuk Pencatatan Keuangan",
   "main": "app.js",
   "scripts": {
+    "start": "node telegram_bot.js",
     "start:wa": "node app.js",
     "start:tele": "node telegram_bot.js"
   },

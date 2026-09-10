@@ -15,25 +15,33 @@ const path = require('path');
 const TelegramBot = require('node-telegram-bot-api');
 const axios = require('axios');
 
-// ── Load .env ─────────────────────────────────────────────────────────────────
+// ── Load .env (Local) + process.env (Railway / Cloud) ────────────────────────
 function loadEnv() {
     const defaults = {
         TELEGRAM_TOKEN: '',
         TELEGRAM_BOT_USERNAME: '',
-        WEBHOOK_URL: 'http://pahamfin.softwaremahasiswa.com/webhook.php',
+        WEBHOOK_URL: 'https://pahamfin.softwaremahasiswa.com/api/webhook.php',
         PAHAMFIN_WEBHOOK_SECRET: '',
         GEMINI_API_KEY: '',
         OPENAI_API_KEY: '',
     };
 
+    // Baca file .env lokal jika ada (untuk development)
     const envFile = path.join(__dirname, '.env');
-    if (!fs.existsSync(envFile)) return defaults;
+    if (fs.existsSync(envFile)) {
+        const lines = fs.readFileSync(envFile, 'utf8').split(/\r?\n/);
+        for (const line of lines) {
+            const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+            if (!m) continue;
+            defaults[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
+        }
+    }
 
-    const lines = fs.readFileSync(envFile, 'utf8').split(/\r?\n/);
-    for (const line of lines) {
-        const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-        if (!m) continue;
-        defaults[m[1]] = m[2].replace(/^['"]|['"]$/g, '').trim();
+    // Railway / cloud env variables selalu override .env lokal
+    for (const key of Object.keys(defaults)) {
+        if (process.env[key] !== undefined && process.env[key] !== '') {
+            defaults[key] = process.env[key];
+        }
     }
 
     return defaults;
@@ -42,8 +50,10 @@ function loadEnv() {
 const ENV = loadEnv();
 const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET, GEMINI_API_KEY, OPENAI_API_KEY } = ENV;
 
-if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('MASUKKAN')) {
-    console.error('❌ TELEGRAM_TOKEN belum dikonfigurasi di file bot/.env');
+console.log('🌐 Webhook URL:', WEBHOOK_URL);
+
+if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('MASUKKAN') || TELEGRAM_TOKEN.includes('ISI_TOKEN')) {
+    console.error('❌ TELEGRAM_TOKEN belum dikonfigurasi! Set di Railway Dashboard > Variables atau di file bot/.env');
     process.exit(1);
 }
 
