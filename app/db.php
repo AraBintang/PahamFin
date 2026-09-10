@@ -532,7 +532,7 @@ function PahamFin_savings_goals(PDO $pdo, int $userId): array
 function PahamFin_seed_default_categories(PDO $pdo, int $userId): void
 {
     $defaultCategories = [
-        ['Gaji & Pendapatan',    'gaji,bonus,pendapatan,thr,salary,upah,komisi,hasil,insentif,transfer masuk', 'PEMASUKAN'],
+        ['Gaji & Pendapatan',    'gaji,bonus,pendapatan,thr,salary,upah,komisi,hasil,insentif,transfer masuk,uang saku,saku,sangu,uang jajan,kiriman,dapat,terima,diberi', 'PEMASUKAN'],
         ['Usaha & Freelance',   'omset,jualan,dagang,laku,untung,freelance,projek,project,bisnis,profit',      'PEMASUKAN'],
         ['Investasi & Pasif',    'dividen,bunga,investasi,saham,crypto,cashback,hibah,hadiah,reksadana',         'PEMASUKAN'],
         ['Makanan & Minuman',   'makan,minum,kopi,kfc,mcd,warteg,sate,bakso,nasi,beli makan,gofood,grabfood,cafe,jajan,snack,boba,sarapan,makan siang,makan malam', 'PENGELUARAN'],
@@ -548,10 +548,15 @@ function PahamFin_seed_default_categories(PDO $pdo, int $userId): void
 
     $check = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE user_id = ? AND LOWER(name) = LOWER(?)");
     $stmt  = $pdo->prepare("INSERT INTO categories (user_id, name, keyword, type) VALUES (?, ?, ?, ?)");
+    $updateStmt = $pdo->prepare("UPDATE categories SET keyword = ? WHERE user_id = ? AND LOWER(name) = LOWER(?)");
+
     foreach ($defaultCategories as $cat) {
         $check->execute([$userId, $cat[0]]);
         if ((int) $check->fetchColumn() === 0) {
             $stmt->execute([$userId, $cat[0], $cat[1], $cat[2]]);
+        } else {
+            // Update keywords jika kategori bawaan sudah ada agar kata kunci baru (seperti uang saku) langsung aktif
+            $updateStmt->execute([$cat[1], $userId, $cat[0]]);
         }
     }
 }

@@ -125,28 +125,37 @@ function PahamFin_find_or_create_user(PDO $pdo, ?string $phone, ?string $telegra
 
 function PahamFin_match_category(PDO $pdo, int $userId, string $message, ?string $description = null): ?array
 {
-    $searchText = strtolower(trim($message . ' ' . ($description ?? '')));
-    $searchText = preg_replace('/[^a-z0-9\s]/i', ' ', $searchText);
-    $searchText = preg_replace('/\s+/', '', $searchText);
+    $fullText = trim($message . ' ' . ($description ?? ''));
+    $cleanText = strtolower(trim(preg_replace('/[^a-z0-9\s]/i', ' ', $fullText)));
 
-    $stmt = $pdo->prepare("SELECT id, type, keyword, name FROM categories WHERE user_id = ? ORDER BY name");
+    // Jika mengandung kata-kata uang saku / pemasukan, utamakan kategori PEMASUKAN
+    $isIncomeHint = preg_match('/\b(saku|uang saku|sangu|pemasukan|gaji|bonus|thr|kiriman|dapat|terima|diberi|omset|jualan|hadiah)\b/i', $fullText);
+
+    $stmt = $pdo->prepare("SELECT id, type, keyword, name FROM categories WHERE user_id = ? ORDER BY " . ($isIncomeHint ? "CASE WHEN type='PEMASUKAN' THEN 0 ELSE 1 END, name" : "name"));
     $stmt->execute([$userId]);
     $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Pass 1: Match persis kata murni (\bkeyword\b)
     foreach ($categories as $category) {
-        $keywords = array_filter(array_map('trim', explode(',', (string) $category['keyword'])), fn($value) => $value !== '');
+        $keywords = array_filter(array_map('trim', explode(',', (string) $category['keyword'])), fn($v) => $v !== '');
         foreach ($keywords as $keyword) {
-            $candidate = strtolower(trim((string) $keyword));
-            if ($candidate === '') {
-                continue;
-            }
+            $kw = strtolower(trim((string) $keyword));
+            if ($kw === '') continue;
 
-            $candidate = preg_replace('/[^a-z0-9]/i', '', $candidate);
-            if ($candidate === '') {
-                continue;
+            if (preg_match('/\b' . preg_quote($kw, '/') . '\b/i', $cleanText)) {
+                return $category;
             }
+        }
+    }
 
-            if (strpos($searchText, $candidate) !== false) {
+    // Pass 2: Fallback substring match tanpa spasi
+    $noSpaceText = str_replace(' ', '', $cleanText);
+    foreach ($categories as $category) {
+        $keywords = array_filter(array_map('trim', explode(',', (string) $category['keyword'])), fn($v) => $v !== '');
+        foreach ($keywords as $keyword) {
+            $kw = strtolower(trim((string) $keyword));
+            $candidate = preg_replace('/[^a-z0-9]/i', '', $kw);
+            if (strlen($candidate) >= 3 && strpos($noSpaceText, $candidate) !== false) {
                 return $category;
             }
         }
