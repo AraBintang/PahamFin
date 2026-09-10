@@ -403,19 +403,24 @@ bot.on('photo', async (msg) => {
         const systemPrompt = `Analisis gambar ini yang berisi foto struk, nota, bukti transfer, atau screenshot bukti pembayaran QRIS / ShopeePay / Gopay / OVO / Dana / Bank.
 Ekstrak informasi transaksi utama dan kembalikan HANYA format JSON valid.
 
-ATURAN PENTING NOMINAL:
-1. NOMINAL UTAMA: Ambil angka nominal transaksi utama di bagian atas berukuran besar (contoh: -Rp66.500, -Rp30.210, +Rp49.000, -Rp18.000).
+ATURAN TIPE TRANSAKSI (PEMASUKAN VS PENGELUARAN):
+- PEMASUKAN: Jika nominal bertanda plus (+) atau berjudul "Rincian Isi Saldo", "Top Up", "Transfer Masuk", "Terima Uang", "Gaji", "Bonus".
+- PENGELUARAN: Jika nominal bertanda minus (-) atau berjudul "Rincian Pembayaran", "Bayar Ke", "Kasir", "Struk Belanja", "Beli".
+
+ATURAN NOMINAL:
+1. NOMINAL UTAMA: Ambil angka nominal transaksi utama di bagian atas berukuran besar (contoh: +Rp49.000, -Rp66.500, -Rp30.210, -Rp18.000).
 2. ABAIKAN BANNER PROMO: JANGAN mengambil angka pada banner/iklan promo (seperti "100RB", "Rp100.000", "Pasti Cashback", atau "+Rp100 Cashback").
-3. FORMAT RUPIAH: Di Indonesia, titik (.) pada 66.500, 30.210, 18.000 adalah pemisah ribuan (artinya 66500, 30210, 18000 rupiah). Wajib kembalikan total_amount sebagai integer murni Rupiah tanpa titik dan tanpa koma.
+3. FORMAT RUPIAH: Di Indonesia, titik (.) pada 49.000, 66.500, 30.210 adalah pemisah ribuan (artinya 49000, 66500, 30210 rupiah). Wajib kembalikan total_amount sebagai integer murni Rupiah tanpa titik dan tanpa koma.
 
 ATURAN MERCHANT:
-Cari teks di bagian "Bayar Ke" atau "Isi Saldo Dari/Ke" atau nama toko di struk (contoh: "PBH Sirajudin Pedalangan", "PASAR CELL", "Kedai Risol", "ShopeePay").
+Cari teks di bagian "Isi Saldo Dari/Ke", "Bayar Ke", atau nama toko di struk (contoh: "Isi Saldo ShopeePay (Alfamart)", "PBH Sirajudin Pedalangan", "PASAR CELL", "Kedai Risol").
 
 JSON Schema:
 {
-  "is_receipt": boolean (true jika gambar adalah bukti bayar/struk/transfer valid),
-  "merchant": string (nama toko/merchant/penerima ringkas),
-  "total_amount": number (nominal transaksi utama integer Rupiah, contoh: 66500, 30210, 18000, 49000),
+  "is_receipt": boolean (true jika gambar adalah bukti bayar/isi saldo/struk/transfer valid),
+  "transaction_type": string ("PEMASUKAN" jika bertanda + / isi saldo / terima uang, "PENGELUARAN" jika bertanda - / bayar / beli),
+  "merchant": string (nama toko/merchant/keterangan transaksi ringkas),
+  "total_amount": number (nominal transaksi utama integer Rupiah, contoh: 49000, 66500, 30210, 18000),
   "items_summary": string (ringkasan item jika ada)
 }
 
@@ -508,13 +513,16 @@ Jika gambar BUKAN struk/nota/bukti bayar valid, set is_receipt: false, total_amo
         const items = parsed.items_summary ? ` (${parsed.items_summary})` : '';
         const fullMessage = `${merchant}${items} ${amount}`;
 
+        const txType = (parsed.transaction_type || '').toUpperCase() === 'PEMASUKAN' ? 'PEMASUKAN' : 'PENGELUARAN';
+
         // Kirim data transaksi ke webhook PahamFin
         const webhookRes = await callWebhook({
             telegram_id: telegramId,
             sender: senderName,
             message: fullMessage,
             amount: amount,
-            description: `${merchant}${items}`
+            description: `${merchant}${items}`,
+            type: txType
         });
 
         if (webhookRes && webhookRes.message) {

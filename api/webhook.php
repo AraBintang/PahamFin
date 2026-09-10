@@ -596,28 +596,25 @@ try {
         exit;
     }
     
+    $txType = strtoupper(trim((string) ($payload['type'] ?? '')));
+    if ($txType !== 'PEMASUKAN' && $txType !== 'PENGELUARAN') {
+        $txType = (stripos($finalDescription, 'isi saldo') !== false || stripos($finalDescription, 'pemasukan') !== false || stripos($finalDescription, 'transfer masuk') !== false || stripos($finalDescription, 'terima') !== false) ? 'PEMASUKAN' : '';
+    }
+
     $category = PahamFin_match_category($pdo, $userId, $message, $finalDescription);
 
-
-    if (!$category) {
-        if (stripos($finalDescription, 'uang masuk') !== false || stripos($finalDescription, 'pemasukan') !== false || stripos($finalDescription, 'terima') !== false) {
-            $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? AND type = 'PEMASUKAN' LIMIT 1");
-            $catStmt->execute([$userId]);
-            $category = $catStmt->fetch(PDO::FETCH_ASSOC);
-        }
-    }
-    if (!$category) {
-        if (stripos($finalDescription, 'uang keluar') !== false || stripos($finalDescription, 'pengeluaran') !== false || stripos($finalDescription, 'bayar') !== false || stripos($finalDescription, 'beli') !== false) {
-            $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? AND type = 'PENGELUARAN' LIMIT 1");
-            $catStmt->execute([$userId]);
-            $category = $catStmt->fetch(PDO::FETCH_ASSOC);
-        }
+    if ($txType !== '' && $category && $category['type'] !== $txType) {
+        // Jika AI mendeteksi PEMASUKAN tapi match_category mengarah ke PENGELUARAN, paksa cari kategori sesuai txType
+        $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? AND type = ? ORDER BY id ASC LIMIT 1");
+        $catStmt->execute([$userId, $txType]);
+        $foundCat = $catStmt->fetch(PDO::FETCH_ASSOC);
+        if ($foundCat) $category = $foundCat;
     }
 
     if (!$category) {
-        // Fallback otomatis ke kategori PENGELUARAN pertama pengguna agar transaksi dari foto struk tidak pernah gagal
-        $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? AND type = 'PENGELUARAN' ORDER BY id ASC LIMIT 1");
-        $catStmt->execute([$userId]);
+        $targetType = $txType !== '' ? $txType : 'PENGELUARAN';
+        $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? AND type = ? ORDER BY id ASC LIMIT 1");
+        $catStmt->execute([$userId, $targetType]);
         $category = $catStmt->fetch(PDO::FETCH_ASSOC);
     }
 
