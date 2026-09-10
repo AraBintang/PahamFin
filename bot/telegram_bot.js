@@ -57,6 +57,7 @@ const ENV = loadEnv();
 const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET, GEMINI_API_KEY, OPENAI_API_KEY } = ENV;
 
 console.log('🌐 Webhook URL:', WEBHOOK_URL);
+console.log('🤖 AI Scan Struk Status:', (OPENAI_API_KEY || GEMINI_API_KEY) ? '✅ AKTIF (Key AI terdeteksi)' : '❌ NONAKTIF (API Key AI belum diset di .env)');
 
 if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('MASUKKAN') || TELEGRAM_TOKEN.includes('ISI_TOKEN')) {
     console.error('❌ TELEGRAM_TOKEN belum dikonfigurasi! Set di Railway Dashboard > Variables atau di file bot/.env');
