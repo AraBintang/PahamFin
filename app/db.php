@@ -532,18 +532,19 @@ function PahamFin_savings_goals(PDO $pdo, int $userId): array
 function PahamFin_seed_default_categories(PDO $pdo, int $userId): void
 {
     $defaultCategories = [
-        ['Gaji & Pendapatan',    'gaji,bonus,pendapatan,thr,salary,upah,komisi,hasil,insentif,transfer masuk,uang saku,saku,sangu,uang jajan,kiriman,dapat,terima,diberi', 'PEMASUKAN'],
-        ['Usaha & Freelance',   'omset,jualan,dagang,laku,untung,freelance,projek,project,bisnis,profit',      'PEMASUKAN'],
-        ['Investasi & Pasif',    'dividen,bunga,investasi,saham,crypto,cashback,hibah,hadiah,reksadana',         'PEMASUKAN'],
-        ['Makanan & Minuman',   'makan,minum,kopi,kfc,mcd,warteg,sate,bakso,nasi,beli makan,gofood,grabfood,cafe,jajan,snack,boba,sarapan,makan siang,makan malam', 'PENGELUARAN'],
-        ['Transportasi',        'bensin,gojek,grab,toll,tol,parkir,ongkir,ojek,bus,kereta,tiket,servis,oli,pertalite,pertamax,krl,travel',                     'PENGELUARAN'],
-        ['Belanja & Harian',    'belanja,shopee,tokopedia,baju,sepatu,grocery,alfamart,indomaret,mall,skincare,kosmetik,minimarket',                           'PENGELUARAN'],
-        ['Tagihan & Utilitas',  'listrik,air,wifi,internet,pulsa,token,kuota,pdam,kost,kontrakan,sewa,asuransi,bpjs,cicilan,kartu kredit,paylater',             'PENGELUARAN'],
-        ['Hiburan & Lifestyle', 'nonton,bioskop,netflix,spotify,game,topup,jalan,liburan,rekreasi,party,nongkrong,piknik',                                   'PENGELUARAN'],
-        ['Kesehatan & Perawatan','obat,dokter,rumah sakit,klinik,vitamin,apotek,gym,fitnes,salon,potong rambut',                                           'PENGELUARAN'],
-        ['Pendidikan & Kursus', 'spp,kuliah,sekolah,buku,kursus,seminar,les,ukt,pendaftaran',                                                                 'PENGELUARAN'],
-        ['Sedekah & Donasi',    'sedekah,infak,zakat,orang tua,ortu,angpao,kado,kirim ortu,donasi,sumbangan',                                                 'PENGELUARAN'],
-        ['Tabungan & Simpanan', 'tabungan,nabung,menabung,deposito,simpanan,celengan',                                                                      'TABUNGAN'],
+        ['Gaji & Pendapatan',     'gaji,bonus,pendapatan,thr,salary,upah,komisi,hasil,insentif,transfer masuk,uang saku,saku,sangu,uang jajan,kiriman,dapat,terima,diberi,amplop,uang makan,tunjangan,lembur,lemburan,tips,tipping,pensiun,bansos,bantuan', 'PEMASUKAN'],
+        ['Usaha & UMKM',          'omset,omzet,jualan,dagang,laku,untung,freelance,projek,project,bisnis,profit,kasir,pelanggan,setoran,pembayaran,klien,client,orderan,pesanan,modal balik,hasil jualan,toko,warung,lapak,olshop,cod,reseller,dropship,komisi jualan,invoice,termin', 'PEMASUKAN'],
+        ['Investasi & Pasif',     'dividen,bunga,investasi,saham,crypto,kripto,cashback,hibah,hadiah,reksadana,sewa,sewaan,kontrakan masuk,kosan masuk,yield,profit sharing,bunga bank,bunga deposito,cuan,airdrop', 'PEMASUKAN'],
+        ['Makanan & Minuman',    'makan,minum,kopi,kfc,mcd,warteg,sate,bakso,nasi,beli makan,gofood,grabfood,shopeefood,cafe,jajan,snack,boba,sarapan,makan siang,makan malam,seblak,mie ayam,nasgor,gorengan,air mineral,galon,coffe,matcha,roti,es teh,ice cream,solaria,mixue,warmindo,angkringan,lauk,daging,sayur,pasar,bumbu,lauk pauk,ketoprak,pempek,martabak,kue', 'PENGELUARAN'],
+        ['Transportasi',         'bensin,gojek,grab,toll,tol,parkir,ongkir,ojek,bus,kereta,tiket,servis,oli,pertalite,pertamax,krl,travel,maxim,indrive,tambal ban,cuci motor,cuci mobil,bengkel,angkot,taksi,flight,pesawat,tiptop,helm,perpanjang stnk,pajak motor,pajak mobil', 'PENGELUARAN'],
+        ['Belanja & Harian',     'belanja,shopee,tokopedia,baju,sepatu,grocery,alfamart,indomaret,mall,skincare,kosmetik,minimarket,tiktok shop,lazada,pakaian,baju kerja,celana,tas,makeup,sabun,shampoo,odol,detergen,tisu,perlengkapan,pampers,susu anak,belanja bulanan,supermarket,superindo', 'PENGELUARAN'],
+        ['Tagihan & Operasional', 'listrik,air,wifi,internet,pulsa,token,kuota,pdam,kost,kontrakan,sewa,asuransi,bpjs,cicilan,kartu kredit,paylater,spaylater,gopaylater,sewa tempat,sewa toko,gaji karyawan,gaji pegawai,operasional,pajak,domain,hosting,atk,kertas,cetak,plastik,packing,banner,iklan,ads,fb ads,google ads,tiktok ads', 'PENGELUARAN'],
+        ['Hiburan & Lifestyle',  'nonton,bioskop,netflix,spotify,game,topup,jalan,liburan,rekreasi,party,nongkrong,piknik,voucher,skin,topup game,steam,playstation,mlbb,pubg,valorant,billiard,futsal,badminton,gym,fitnes,konser,tiket konser,staycation,kafe,hangout,movie,buku komik,manga,anime,cosplay', 'PENGELUARAN'],
+        ['Kesehatan & Perawatan', 'obat,dokter,rumah sakit,klinik,vitamin,apotek,salon,potong rambut,barbershop,spa,skincare rutin,pemeriksaan,behel,gigi,kacamata,softlens,terapi,pijat,urut,konsultasi,kasa,perban', 'PENGELUARAN'],
+        ['Pendidikan & Kursus',  'spp,kuliah,sekolah,buku,kursus,seminar,les,ukt,pendaftaran,seragam,alat tulis,pensil,pulpen,modul,sertifikasi,pelatihan,bootcamp,workshop,skripsi,fotokopi,print', 'PENGELUARAN'],
+        ['Sedekah & Sosial',     'sedekah,infak,zakat,orang tua,ortu,angpao,kado,kirim ortu,donasi,sumbangan,kondangan,nasi kotak,arisan,thr saudara,amplop nikah,santunan,kas,iuran,patungan,iuran rt,iuran rw,keamanan,kebersihan', 'PENGELUARAN'],
+        ['Stok & Kulakan UMKM',  'kulakan,bahan baku,stok,restok,belanja stok,grosir,supplier,distributor,pembelian bahan,kain,benang,kemasan,dus,botol,kantong,kardus,nota,belanja modal', 'PENGELUARAN'],
+        ['Tabungan & Simpanan',  'tabungan,nabung,menabung,deposito,simpanan,celengan,dana darurat,reksa dana,emas,antam', 'TABUNGAN'],
     ];
 
     $check = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE user_id = ? AND LOWER(name) = LOWER(?)");
@@ -555,7 +556,7 @@ function PahamFin_seed_default_categories(PDO $pdo, int $userId): void
         if ((int) $check->fetchColumn() === 0) {
             $stmt->execute([$userId, $cat[0], $cat[1], $cat[2]]);
         } else {
-            // Update keywords jika kategori bawaan sudah ada agar kata kunci baru (seperti uang saku) langsung aktif
+            // Update keywords jika kategori bawaan sudah ada agar kata kunci baru langsung aktif
             $updateStmt->execute([$cat[1], $userId, $cat[0]]);
         }
     }
