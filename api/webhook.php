@@ -333,6 +333,33 @@ function PahamFin_bot_command(PDO $pdo, int $userId, string $action, string $des
         return ['success' => true, 'message' => implode("\n", $lines)];
     }
 
+    if ($action === 'check_due_reminders') {
+        $today = date('Y-m-d');
+        $h2 = date('Y-m-d', strtotime('+2 days'));
+
+        $stmt = $pdo->query("
+            SELECT r.id, r.user_id, r.title, r.remind_date, u.telegram_id
+            FROM reminders r
+            JOIN users u ON u.id = r.user_id
+            WHERE r.done = 0 
+              AND (r.notified_tg IS NULL OR r.notified_tg = 0)
+              AND r.remind_date <= '{$h2}'
+              AND u.telegram_id IS NOT NULL AND u.telegram_id != ''
+            LIMIT 20
+        ");
+        $dueReminders = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+
+        if (count($dueReminders) > 0) {
+            foreach ($dueReminders as $dr) {
+                try {
+                    $pdo->prepare("UPDATE reminders SET notified_tg = 1 WHERE id = ?")->execute([$dr['id']]);
+                } catch (Throwable $e) {}
+            }
+        }
+
+        return ['success' => true, 'reminders' => $dueReminders];
+    }
+
     if ($action === 'done') {
         $id = (int) $description;
         if ($id <= 0) return ['success' => false, 'message' => 'Format salah. Gunakan /done [id]'];
@@ -612,6 +639,59 @@ try {
         }
     }
     
+    // ── 💸 Logika Transfer / Pindah Saldo Antar Dompet 💸 ──
+    // Contoh: "pindah 500k dari bca ke gopay", "transfer 200rb tunai ke gopay"
+    if (preg_match('/^(?:pindah|transfer|pindahkan)(?:\s+saldo|\s+dana)?\s+(.+)$/i', $message, $mTransferStr)) {
+        $rest = trim($mTransferStr[1]);
+        $trAmount = PahamFin_parse_amount_from_text($rest) ?? $amount;
+        
+        if ($trAmount > 0) {
+            $cleanRest = preg_replace('/\b\d+(?:[.,]\d+)?\s*(?:juta|jt|m|ribu|rb|k)?\b/i', '', $rest);
+            $cleanRest = trim(preg_replace('/\b(dari|ke|saldo|dana|sebesar|rp)\b/i', ' ', $cleanRest));
+            $parts = array_values(array_filter(explode(' ', $cleanRest)));
+            
+            if (count($parts) >= 2) {
+                $fromQuery = $parts[0];
+                $toQuery = $parts[count($parts) - 1];
+
+                $allW = $pdo->prepare("SELECT id, name, starting_balance FROM wallets WHERE user_id = ?");
+                $allW->execute([$userId]);
+                $walletsList = $allW->fetchAll(PDO::FETCH_ASSOC);
+
+                $fromWallet = null;
+                $toWallet = null;
+
+                foreach ($walletsList as $wItem) {
+                    if (stripos($wItem['name'], $fromQuery) !== false || stripos($fromQuery, $wItem['name']) !== false) {
+                        if (!$fromWallet) $fromWallet = $wItem;
+                    }
+                    if (stripos($wItem['name'], $toQuery) !== false || stripos($toQuery, $wItem['name']) !== false) {
+                        $toWallet = $wItem;
+                    }
+                }
+
+                if ($fromWallet && $toWallet && $fromWallet['id'] !== $toWallet['id']) {
+                    $pdo->prepare("UPDATE wallets SET starting_balance = starting_balance - ? WHERE id = ?")
+                        ->execute([$trAmount, $fromWallet['id']]);
+                    $pdo->prepare("UPDATE wallets SET starting_balance = starting_balance + ? WHERE id = ?")
+                        ->execute([$trAmount, $toWallet['id']]);
+
+                    $fmtAmt = number_format($trAmount, 0, ',', '.');
+                    echo json_encode([
+                        'success' => true,
+                        'status'  => 'success',
+                        'message' => "💸 *Transfer Antar Dompet Berhasil!*\n\n" .
+                                     "📤 Dari Dompet : *" . $fromWallet['name'] . "* (-Rp {$fmtAmt})\n" .
+                                     "📥 Ke Dompet   : *" . $toWallet['name'] . "* (+Rp {$fmtAmt})\n" .
+                                     "💵 Nominal     : *Rp {$fmtAmt}*\n\n" .
+                                     "_Ketik /dompet untuk melihat saldo dompet kamu._"
+                    ]);
+                    exit;
+                }
+            }
+        }
+    }
+
     // ── Logika Isi/Top-Up Dompet ──
     // Contoh: "isi dompet gopay 50k" atau "topup gopay 50k"
     if (preg_match('/^(?:isi\s+dompet|topup|top.up)\s+(.+?)\s+(\d+(?:[kKmMbBrR]{0,2}))$/i', $message, $m)) {

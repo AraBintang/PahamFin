@@ -556,6 +556,33 @@ bot.on('document', async (msg) => {
     );
 });
 
+// ── Automatic Reminder Notification Scheduler (H-2 / Hari H) ─────────────────
+async function checkAutoReminders() {
+    try {
+        const res = await callWebhook({ action: 'check_due_reminders' });
+        if (res && res.success && Array.isArray(res.reminders)) {
+            for (const r of res.reminders) {
+                if (r.telegram_id) {
+                    const daysLeft = Math.ceil((new Date(r.remind_date) - new Date()) / (1000 * 60 * 60 * 24));
+                    const statusText = daysLeft <= 0 ? 'Hari Ini! ⚠️' : `H-${daysLeft} (Tanggal ${r.remind_date})`;
+                    
+                    await reply(r.telegram_id,
+                        `🔔 *PENGINGAT JATUH TEMPO / TAGIHAN!*\n\n` +
+                        `📌 *${r.title}*\n` +
+                        `🗓️ Batas Waktu: *${statusText}*\n\n` +
+                        `_Ketik \`/done ${r.id}\` jika sudah diselesaikan/dibayar._`,
+                        buildKeyboard()
+                    );
+                }
+            }
+        }
+    } catch (e) {
+        // Silent fail scheduler
+    }
+}
+setTimeout(checkAutoReminders, 15000);
+setInterval(checkAutoReminders, 30 * 60 * 1000);
+
 // ── Global Error Handlers (bot tidak crash) ────────────────────────────────────
 bot.on('polling_error', (err) => {
     // 409 = ada instance bot lain — hentikan proses ini agar tidak konflik
