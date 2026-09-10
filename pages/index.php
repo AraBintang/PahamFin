@@ -64,25 +64,51 @@ $stmt = $pdo->prepare("SELECT * FROM reminders WHERE user_id = ? AND done = 0 AN
 $stmt->execute([$user_id, date('Y-m-d')]);
 $due_reminders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ---- Data grafik: 6 bulan terakhir (income vs expense) ----
+// ---- Data grafik: 6 bulan terakhir (income vs expense) — 1 query, bukan 6 ----
 $chartLabels = [];
 $chartIncome = [];
 $chartExpense = [];
+
+// Hitung rentang 6 bulan terakhir
+$sixMonthsAgo = date('Y-m-01', strtotime('-5 months'));
+$thisMonthEnd = date('Y-m-t');
+
+// Build map bulan kosong dulu (agar bulan tanpa transaksi tetap muncul 0)
+$monthMap = [];
 for ($i = 5; $i >= 0; $i--) {
-    $start = date('Y-m-01', strtotime("-$i months"));
-    $end = date('Y-m-t', strtotime("-$i months"));
-    $label = date('M', strtotime("-$i months"));
-    $stmt = $pdo->prepare("SELECT
+    $key = date('Y-m', strtotime("-$i months"));
+    $monthMap[$key] = ['inc' => 0, 'exp' => 0, 'label' => date('M', strtotime("-$i months"))];
+}
+
+// 1 query saja, group by bulan (kompatibel SQLite & MySQL)
+if ($databaseDriver === 'sqlite') {
+    $stmtChart = $pdo->prepare("SELECT strftime('%Y-%m', transaction_date) AS ym,
         COALESCE(SUM(CASE WHEN type='PEMASUKAN' THEN amount ELSE 0 END),0) AS inc,
         COALESCE(SUM(CASE WHEN type='PENGELUARAN' THEN amount ELSE 0 END),0) AS exp
         FROM transactions
-        WHERE user_id = ? AND transaction_date BETWEEN ? AND ?");
-    $stmt->execute([$user_id, $start, $end]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    $chartLabels[] = $label;
-    $chartIncome[] = (float) $row['inc'];
-    $chartExpense[] = (float) $row['exp'];
+        WHERE user_id = ? AND transaction_date BETWEEN ? AND ?
+        GROUP BY ym ORDER BY ym ASC");
+} else {
+    $stmtChart = $pdo->prepare("SELECT DATE_FORMAT(transaction_date, '%Y-%m') AS ym,
+        COALESCE(SUM(CASE WHEN type='PEMASUKAN' THEN amount ELSE 0 END),0) AS inc,
+        COALESCE(SUM(CASE WHEN type='PENGELUARAN' THEN amount ELSE 0 END),0) AS exp
+        FROM transactions
+        WHERE user_id = ? AND transaction_date BETWEEN ? AND ?
+        GROUP BY ym ORDER BY ym ASC");
 }
+$stmtChart->execute([$user_id, $sixMonthsAgo, $thisMonthEnd]);
+foreach ($stmtChart->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    if (isset($monthMap[$row['ym']])) {
+        $monthMap[$row['ym']]['inc'] = (float) $row['inc'];
+        $monthMap[$row['ym']]['exp'] = (float) $row['exp'];
+    }
+}
+foreach ($monthMap as $data) {
+    $chartLabels[]  = $data['label'];
+    $chartIncome[]  = $data['inc'];
+    $chartExpense[] = $data['exp'];
+}
+
 
 // ---- Data grafik: breakdown pengeluaran per kategori bulan ini ----
 $catChartLabels = [];
