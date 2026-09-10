@@ -335,13 +335,21 @@ bot.on('message', async (msg) => {
         });
 
         if (data.success) {
-            const emoji  = data.type === 'PEMASUKAN' ? '💰' : '🧾';
-            const tanda  = data.type === 'PEMASUKAN' ? '+' : '-';
-            const fmtAmt = new Intl.NumberFormat('id-ID').format(amount);
+            // Jika webhook mengembalikan pesan kustom (misal respon Tabungan/Target/Dompet/Hutang/Perintah)
+            if (data.message) {
+                await reply(chatId, data.message, buildKeyboard());
+                return;
+            }
+
+            const isIncome = data.type === 'PEMASUKAN';
+            const emoji  = isIncome ? '🟢' : '🔴';
+            const tanda  = isIncome ? '+' : '-';
+            const finalAmt = data.amount || amount;
+            const fmtAmt = new Intl.NumberFormat('id-ID').format(finalAmt);
 
             await reply(chatId,
                 `${emoji} *Transaksi Dicatat!*\n\n` +
-                `📂 Kategori : *${data.category}*\n` +
+                `📂 Kategori : *${data.category || 'Umum'}*\n` +
                 `💵 Nominal  : *${tanda}Rp ${fmtAmt}*\n` +
                 `📝 Ket.     : ${data.description || text}\n\n` +
                 `_Ketik /saldo untuk cek ringkasan._`,

@@ -156,9 +156,9 @@ $goals = PahamFin_savings_goals($pdo, $user_id);
     </div>
 
     <!-- Modal Delete -->
-    <div x-show="showDelete" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div x-show="showDelete" x-transition.opacity @click="showDelete = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-        <div x-show="showDelete" x-transition class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10 text-center">
+    <div x-show="showDelete" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div @click="showDelete = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10 text-center">
             <i class="ph ph-warning-circle text-5xl text-red-500 dark:text-red-400 mb-4 inline-block"></i>
             <h4 class="font-bold text-ink dark:text-slate-100 text-lg mb-2">Hapus Target Tabungan?</h4>
             <p class="text-sm text-gray-500 dark:text-slate-400 mb-6">Tindakan ini tidak dapat dibatalkan.</p>
@@ -175,19 +175,12 @@ $goals = PahamFin_savings_goals($pdo, $user_id);
     </div>
 
     <!-- Modal Form buat target -->
-    <div x-show="showModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div x-show="showModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <!-- Overlay -->
-        <div x-show="showModal" x-transition.opacity @click="showModal = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+        <div @click="showModal = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
         
         <!-- Modal Content -->
-        <div x-show="showModal" 
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-8 scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-             x-transition:leave-end="opacity-0 translate-y-8 scale-95"
-             class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-md p-6 z-10">
+        <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-md p-6 z-10">
              
             <div class="flex items-center justify-between mb-5">
                 <h4 class="font-bold text-ink dark:text-slate-100 text-lg flex items-center gap-2"><i class="ph ph-target text-primary dark:text-blue-400"></i> Buat Target Baru</h4>

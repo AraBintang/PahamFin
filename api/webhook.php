@@ -495,57 +495,111 @@ try {
     }
     
     // ── 💰 Logika Set Target Tabungan Baru 💰
-    if (stripos($message, 'target ') === 0 || stripos($message, 'buat tabungan ') === 0) {
-        $goalName = trim(str_ireplace(['target ', 'buat tabungan '], '', PahamFin_extract_description($message)));
-        if ($goalName === '') {
-            throw new RuntimeException("Format salah. Contoh: target liburan bali 5000000");
-        }
-        $pdo->prepare("INSERT INTO savings_goals (user_id, name, target_amount) VALUES (?, ?, ?)")
-            ->execute([$userId, $goalName, $amount]);
-        $fmtAmount = number_format($amount, 0, ',', '.');
-        echo json_encode([
-            'success' => true, 'status' => 'success',
-            'message' => "🎯 Target tabungan baru *{$goalName}* sebesar Rp {$fmtAmount} berhasil dibuat!"
-        ]);
-        exit;
-    }
-
-    // 💰 Logika Menabung 💰
-    if (stripos($finalDescription, 'nabung') !== false || stripos($message, 'nabung') !== false || stripos($message, 'tabungan') !== false) {
-        $stmt = $pdo->prepare("SELECT * FROM savings_goals WHERE user_id = ?");
-        $stmt->execute([$userId]);
-        $goals = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // 💰 Logika Target & Tabungan Pintar 💰
+    if (stripos($message, 'target ') === 0 || stripos($message, 'buat tabungan ') === 0 || stripos($message, 'nabung') !== false || stripos($message, 'tabungan') !== false) {
+        // Ekstrak semua nominal angka dari kalimat
+        $allAmounts = [];
+        $units = $GLOBALS['PahamFin_AMOUNT_UNITS'] ?? [];
+        uksort($units, fn($a, $b) => strlen($b) <=> strlen($a));
         
+        $tempMsg = strtolower($message);
+        foreach ($units as $suffix => $multiplier) {
+            $pattern = '/(\d+(?:[.,]\d+)?)\s*' . preg_quote($suffix, '/') . '\b/i';
+            if (preg_match_all($pattern, $tempMsg, $mList, PREG_SET_ORDER)) {
+                foreach ($mList as $m) {
+                    $val = (float) str_replace(',', '.', $m[1]) * $multiplier;
+                    $allAmounts[] = $val;
+                    $tempMsg = str_replace($m[0], ' ', $tempMsg);
+                }
+            }
+        }
+        if (preg_match_all('/\b(\d{3,})\b/', $tempMsg, $numList)) {
+            foreach ($numList[1] as $n) {
+                $allAmounts[] = (float)$n;
+            }
+        }
+
+        $allAmounts = array_unique($allAmounts);
+        rsort($allAmounts); // Urutkan terbesar ke terkecil
+
+        // Ekstrak nama target dari kalimat
+        $cleanDesc = preg_replace('/\b(nabung|target|buat|tabungan|harga|sekarang|baru|kekumpul|terkumpul|dana|uang|rp)\b/i', '', PahamFin_extract_description($message));
+        $goalName = trim(preg_replace('/\s+/', ' ', $cleanDesc));
+        if ($goalName === '') $goalName = 'Tabungan Masa Depan';
+
+        // Jika ada 2 nominal (Target Total & Dana Terkumpul)
+        if (count($allAmounts) >= 2) {
+            $targetAmt = $allAmounts[0]; // Terbesar (misal 300jt)
+            $initialAmt = $allAmounts[count($allAmounts) - 1]; // Terkumpul (misal 2jt)
+
+            $pdo->prepare("INSERT INTO savings_goals (user_id, name, target_amount, saved_amount) VALUES (?, ?, ?, ?)")
+                ->execute([$userId, ucfirst($goalName), $targetAmt, $initialAmt]);
+
+            $fmtTarget = number_format($targetAmt, 0, ',', '.');
+            $fmtInitial = number_format($initialAmt, 0, ',', '.');
+            $pct = round(($initialAmt / $targetAmt) * 100, 2);
+
+            echo json_encode([
+                'success' => true,
+                'status'  => 'success',
+                'message' => "🎯 *Target Tabungan Berhasil Dibuat!*\n\n" .
+                             "📌 Nama Target  : * " . ucfirst($goalName) . "*\n" .
+                             "💰 Target Total  : *Rp {$fmtTarget}*\n" .
+                             "💵 Dana Terkumpul: *Rp {$fmtInitial}*\n" .
+                             "📊 Progres       : *{$pct}%*\n\n" .
+                             "_Ketik /tabungan untuk melihat semua target kamu._"
+            ]);
+            exit;
+        }
+
+        // Jika hanya 1 nominal → Cek apakah target sudah ada di DB
+        $stmtG = $pdo->prepare("SELECT * FROM savings_goals WHERE user_id = ?");
+        $stmtG->execute([$userId]);
+        $goals = $stmtG->fetchAll(PDO::FETCH_ASSOC);
+
         $matchedGoal = null;
         foreach ($goals as $g) {
-            if (stripos($message, $g['name']) !== false || stripos($g['name'], $finalDescription) !== false) {
+            if (stripos($message, $g['name']) !== false || stripos($g['name'], $goalName) !== false) {
                 $matchedGoal = $g;
                 break;
             }
         }
-        
+
         if ($matchedGoal) {
-            $pdo->prepare("UPDATE savings_goals SET saved_amount = saved_amount + ? WHERE id = ?")->execute([$amount, $matchedGoal['id']]);
-            $fmtAmount = number_format($amount, 0, ',', '.');
+            $addAmt = $amount ?? ($allAmounts[0] ?? 0);
+            if ($addAmt > 0) {
+                $pdo->prepare("UPDATE savings_goals SET saved_amount = saved_amount + ? WHERE id = ?")->execute([$addAmt, $matchedGoal['id']]);
+                $fmtAdd = number_format($addAmt, 0, ',', '.');
+                $newSaved = $matchedGoal['saved_amount'] + $addAmt;
+                $fmtTotal = number_format($newSaved, 0, ',', '.');
+                $fmtTarget = number_format($matchedGoal['target_amount'], 0, ',', '.');
+                $pct = $matchedGoal['target_amount'] > 0 ? round(($newSaved / $matchedGoal['target_amount']) * 100, 1) : 100;
+
+                echo json_encode([
+                    'success' => true,
+                    'status'  => 'success',
+                    'message' => "🎯 *Tabungan Berhasil Ditambah!*\n\n" .
+                                 "📌 Target       : *" . $matchedGoal['name'] . "*\n" .
+                                 "➕ Setoran Baru : *+Rp {$fmtAdd}*\n" .
+                                 "💵 Total Terkumpul: *Rp {$fmtTotal} / Rp {$fmtTarget}* ({$pct}%)\n\n" .
+                                 "_Ketik /tabungan untuk cek perkembangan._"
+                ]);
+                exit;
+            }
+        } else {
+            // Target baru 1 nominal (hanya set target)
+            $targetAmt = $amount ?? ($allAmounts[0] ?? 0);
+            $pdo->prepare("INSERT INTO savings_goals (user_id, name, target_amount, saved_amount) VALUES (?, ?, ?, 0)")
+                ->execute([$userId, ucfirst($goalName), $targetAmt]);
+
+            $fmtTarget = number_format($targetAmt, 0, ',', '.');
             echo json_encode([
                 'success' => true,
-                'status' => 'success',
-                'message' => "🎯 Tabungan berhasil ditambahkan ke *{$matchedGoal['name']}* sebesar Rp {$fmtAmount}!",
-                'type' => 'TABUNGAN',
-                'category' => $matchedGoal['name'],
-                'amount' => $amount,
-                'description' => $finalDescription,
-            ]);
-            exit;
-        } else {
-            // Jika tidak ketemu targetnya, buat otomatis!
-            $goalName = trim(str_ireplace(['tabungan ke ', 'tabungan ', 'nabung '], '', PahamFin_extract_description($message)));
-            $pdo->prepare("INSERT INTO savings_goals (user_id, name, target_amount, saved_amount) VALUES (?, ?, ?, ?)")
-                ->execute([$userId, $goalName, 0, $amount]);
-            $fmtAmount = number_format($amount, 0, ',', '.');
-            echo json_encode([
-                'success' => true, 'status' => 'success',
-                'message' => "🎯 Target tabungan baru *{$goalName}* berhasil dibuat otomatis dan diisi sebesar Rp {$fmtAmount}!"
+                'status'  => 'success',
+                'message' => "🎯 *Target Tabungan Berhasil Dibuat!*\n\n" .
+                             "📌 Nama Target  : *" . ucfirst($goalName) . "*\n" .
+                             "💰 Target Total  : *Rp {$fmtTarget}*\n\n" .
+                             "_Ketik `nabung {$goalName} [nominal]` untuk menyetor dana._"
             ]);
             exit;
         }
