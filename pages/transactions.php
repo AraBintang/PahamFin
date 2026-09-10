@@ -187,15 +187,26 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     // Sisipkan UTF-8 BOM agar WPS Office & Microsoft Excel mengenali encoding
     fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-    // Gunakan titik koma (;) sebagai pemisah kolom standar Windows Excel Indonesia
     $delimiter = ';';
 
-    // Header Tabel Utama
-    fputcsv($output, ['Tanggal', 'Kategori', 'Tipe', 'Deskripsi', 'Nominal (Rp)'], $delimiter);
+    // Helper penulisan baris 5 kolom konsisten (kolom A, B, C, D, E)
+    $writeRow = function($col1 = '', $col2 = '', $col3 = '', $col4 = '', $col5 = '') use ($output, $delimiter) {
+        fputcsv($output, [$col1, $col2, $col3, $col4, $col5], $delimiter);
+    };
 
+    // Tentukan teks periode filter dinamis
+    $periodText = "Semua Waktu";
+    if ($filters['date_from'] !== '' && $filters['date_to'] !== '') {
+        $periodText = date('d/m/Y', strtotime($filters['date_from'])) . " s/d " . date('d/m/Y', strtotime($filters['date_to']));
+    } elseif ($filters['date_from'] !== '') {
+        $periodText = "Sejak " . date('d/m/Y', strtotime($filters['date_from']));
+    } elseif ($filters['date_to'] !== '') {
+        $periodText = "Hingga " . date('d/m/Y', strtotime($filters['date_to']));
+    }
+
+    // Hitung Ringkasan
     $totalPemasukan = 0;
     $totalPengeluaran = 0;
-
     foreach ($rows as $row) {
         $amt = (float) $row['amount'];
         if ($row['type'] === 'PEMASUKAN') {
@@ -203,21 +214,35 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
         } else {
             $totalPengeluaran += $amt;
         }
+    }
+    $saldoBersih = $totalPemasukan - $totalPengeluaran;
 
-        fputcsv($output, [
+    // Header Laporan Modern & Semangat (5 Kolom Rapi)
+    $writeRow('🚀 LAPORAN KEUANGAN PAHAMFIN');
+    $writeRow('Catat Otomatis, Laporan Rapi, Keuangan Makin Sehat & Terencana! ✨');
+    $writeRow();
+    $writeRow('📅 PERIODE LAPORAN', $periodText);
+    $writeRow();
+    $writeRow('📊 RINGKASAN KEUANGAN');
+    $writeRow('🟢 Total Pemasukan', 'Rp ' . number_format($totalPemasukan, 0, ',', '.'));
+    $writeRow('🔴 Total Pengeluaran', 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'));
+    $writeRow('🟦 Saldo Bersih (Net)', 'Rp ' . number_format($saldoBersih, 0, ',', '.'));
+    $writeRow();
+
+    // Header Tabel Utama
+    $writeRow('Tanggal', 'Kategori', 'Tipe', 'Deskripsi', 'Nominal (Rp)');
+
+    // Isi Data Transaksi
+    foreach ($rows as $row) {
+        $amt = (float) $row['amount'];
+        $writeRow(
             $row['transaction_date'],
             $row['category_name'],
             $row['type'],
             $row['description'],
             number_format($amt, 0, ',', '.')
-        ], $delimiter);
+        );
     }
-
-    // Baris Pemisah Ringkasan
-    fputcsv($output, [], $delimiter);
-    fputcsv($output, ['---', '---', '---', 'TOTAL PEMASUKAN', number_format($totalPemasukan, 0, ',', '.')], $delimiter);
-    fputcsv($output, ['---', '---', '---', 'TOTAL PENGELUARAN', number_format($totalPengeluaran, 0, ',', '.')], $delimiter);
-    fputcsv($output, ['---', '---', '---', 'SALDO BERSIH (NET)', number_format($totalPemasukan - $totalPengeluaran, 0, ',', '.')], $delimiter);
 
     fclose($output);
     exit;
