@@ -22,7 +22,7 @@ $clientSecret = PahamFin_GOOGLE_CLIENT_SECRET;
 $redirectUri  = PahamFin_GOOGLE_REDIRECT_URI;
 
 if ($clientId === '' || $clientSecret === '') {
-    header('Location: login.php?error=google_not_configured');
+    header('Location: login.php');
     exit;
 }
 

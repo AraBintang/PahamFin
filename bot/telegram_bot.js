@@ -298,28 +298,23 @@ bot.on('message', async (msg) => {
         );
     }
 
-    // ── Shortcut: Target Tabungan ────────────────────────────────────────────
-    if (lower.startsWith('target ') || lower.startsWith('buat tabungan ')) {
-        return reply(chatId,
-            `🐷 *Buat Target Tabungan*\n\n` +
-            `Untuk membuat target tabungan baru, buka halaman Tabungan di Dashboard:\n` +
-            `👉 ${WEBHOOK_URL.replace('/webhook.php', '')}/pages/savings.php\n\n` +
-            `_Untuk menambah ke tabungan yang sudah ada, ketik:_\n` +
-            `➤ \`nabung [nama tabungan] [nominal]\`\n` +
-            `Contoh: \`nabung rumah 500000\``
-        );
-    }
-
     const amount = parseAmount(text);
 
-    if (!amount || amount <= 0) {
+    // Cek apakah pesan termasuk perintah / intent khusus bot
+    const isSpecialCommand = 
+        /\b(lunas|bayar|pelunasan|utang|hutang|piutang|pinjemin|pinjamkan|pindah|transfer|topup|isi dompet|add dompet|target|nabung|buat tabungan)\b/i.test(text) ||
+        lower.endsWith('lunas');
+
+    if (!isSpecialCommand && (!amount || amount <= 0)) {
         await reply(chatId,
             `❓ *Format tidak dikenali.*\n\n` +
             `Contoh yang benar:\n` +
             `• \`makan 50000\`\n` +
-            `• \`bensin 100rb\`\n` +
-            `• \`gaji 5jt\`\n\n` +
-            `Ketik /help untuk panduan lengkap.`
+            `• \`utang budi 50000\`\n` +
+            `• \`lunas budi\` / \`hutang budi lunas\`\n` +
+            `• \`target mobil 150jt\`\n` +
+            `• \`pindah 500k dari bca ke gopay\`\n\n` +
+            `Ketik /help untuk melihat panduan lengkap.`
         );
         return;
     }

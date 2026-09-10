@@ -498,39 +498,105 @@ try {
         exit;
     }
     
-    // ── Logika Bayar Lunas Hutang/Piutang ──
-    if (stripos($message, 'lunas ') === 0) {
-        $personName = trim(str_ireplace('lunas ', '', $message));
-        $stmt = $pdo->prepare("UPDATE debts SET status = 'PAID' WHERE user_id = ? AND LOWER(person_name) = LOWER(?) AND status = 'UNPAID'");
-        $stmt->execute([$userId, $personName]);
-        if ($stmt->rowCount() > 0) {
-            echo json_encode(['success' => true, 'status' => 'success', 'message' => "✅ Hutang/Piutang atas nama *{$personName}* berhasil dilunasi!"]);
-        } else {
-            throw new RuntimeException("Tidak ada hutang/piutang yang belum lunas atas nama '{$personName}'.");
+    // ── Logika Bayar Lunas Hutang/Piutang Flexible ──
+    $personNameLunas = null;
+    if (preg_match('/^(?:lunas|bayar|pelunasan)\s+(?:hutang\s+|utang\s+|piutang\s+)?(.+)$/i', $message, $mLunas)) {
+        $personNameLunas = trim($mLunas[1]);
+    } elseif (preg_match('/^(?:hutang\s+|utang\s+|piutang\s+)?(.+?)\s+lunas$/i', $message, $mLunas)) {
+        $personNameLunas = trim($mLunas[1]);
+    }
+
+    if ($personNameLunas !== null) {
+        $cleanPerson = trim(preg_replace('/\b(lunas|bayar|pelunasan|hutang|utang|piutang|ke|dari|sama|rp)\b/i', '', $personNameLunas));
+        $cleanPerson = trim(preg_replace('/\s+/', ' ', $cleanPerson));
+
+        if ($cleanPerson !== '') {
+            $stmt = $pdo->prepare("SELECT * FROM debts WHERE user_id = ? AND (LOWER(person_name) = LOWER(?) OR LOWER(person_name) LIKE LOWER(?)) AND status = 'UNPAID' ORDER BY id DESC LIMIT 1");
+            $stmt->execute([$userId, $cleanPerson, "%{$cleanPerson}%"]);
+            $debt = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($debt) {
+                $pdo->prepare("UPDATE debts SET status = 'PAID' WHERE id = ?")->execute([$debt['id']]);
+                $debtTypeLabel = ($debt['type'] === 'OWE') ? 'Hutang kamu ke' : 'Piutang kamu dari';
+                $fmtAmt = number_format((float)$debt['amount'], 0, ',', '.');
+                echo json_encode([
+                    'success' => true,
+                    'status' => 'success',
+                    'message' => "✅ *{$debtTypeLabel} {$debt['person_name']}* sebesar Rp {$fmtAmt} telah ditandai *LUNAS*! 🎉"
+                ]);
+                exit;
+            } else {
+                // Failsafe: Cari nama yang mirip di daftar UNPAID debts
+                $allUnpaid = $pdo->prepare("SELECT id, person_name, amount, type FROM debts WHERE user_id = ? AND status = 'UNPAID'");
+                $allUnpaid->execute([$userId]);
+                $unpaidRows = $allUnpaid->fetchAll(PDO::FETCH_ASSOC);
+
+                $foundDebt = null;
+                foreach ($unpaidRows as $uRow) {
+                    if (stripos($uRow['person_name'], $cleanPerson) !== false || stripos($cleanPerson, $uRow['person_name']) !== false) {
+                        $foundDebt = $uRow;
+                        break;
+                    }
+                }
+
+                if ($foundDebt) {
+                    $pdo->prepare("UPDATE debts SET status = 'PAID' WHERE id = ?")->execute([$foundDebt['id']]);
+                    $debtTypeLabel = ($foundDebt['type'] === 'OWE') ? 'Hutang kamu ke' : 'Piutang kamu dari';
+                    $fmtAmt = number_format((float)$foundDebt['amount'], 0, ',', '.');
+                    echo json_encode([
+                        'success' => true,
+                        'status' => 'success',
+                        'message' => "✅ *{$debtTypeLabel} {$foundDebt['person_name']}* sebesar Rp {$fmtAmt} telah ditandai *LUNAS*! 🎉"
+                    ]);
+                    exit;
+                }
+
+                throw new RuntimeException("Tidak ada hutang/piutang aktif atas nama '{$cleanPerson}'. Ketik /hutang untuk melihat daftar.");
+            }
         }
+    }
+
+    // ── Logika Catat Hutang / Piutang ──
+    if (preg_match('/^(?:utang|hutang)\s+(?:ke\s+|sama\s+)?(.+)$/i', $message, $mDebt)) {
+        $amountForDebt = $amount ?? PahamFin_parse_amount_from_text($message);
+        if (!$amountForDebt || $amountForDebt <= 0) {
+            throw new RuntimeException("Format nominal hutang tidak valid. Contoh: utang budi 50000");
+        }
+        $personName = trim(preg_replace('/\b(utang|hutang|ke|sama|rp)\b/i', '', PahamFin_extract_description($mDebt[1])));
+        $personName = trim(preg_replace('/\s+/', ' ', $personName));
+        if ($personName === '') $personName = 'Seseorang';
+        
+        $pdo->prepare("INSERT INTO debts (user_id, person_name, amount, type) VALUES (?, ?, ?, 'OWE')")->execute([$userId, $personName, $amountForDebt]);
+        $fmt = number_format($amountForDebt, 0, ',', '.');
+        echo json_encode([
+            'success' => true,
+            'status' => 'success',
+            'message' => "📝 *Hutang Dicatat!*\n\nKamu berhutang ke *{$personName}* sebesar Rp {$fmt}.\n\n_Ketik `lunas {$personName}` jika sudah dibayar._"
+        ]);
+        exit;
+    }
+
+    if (preg_match('/^(?:piutang|pinjemin|pinjamkan)\s+(?:ke\s+|sama\s+)?(.+)$/i', $message, $mLent)) {
+        $amountForDebt = $amount ?? PahamFin_parse_amount_from_text($message);
+        if (!$amountForDebt || $amountForDebt <= 0) {
+            throw new RuntimeException("Format nominal piutang tidak valid. Contoh: piutang andi 100k");
+        }
+        $personName = trim(preg_replace('/\b(piutang|pinjemin|pinjamkan|ke|sama|rp)\b/i', '', PahamFin_extract_description($mLent[1])));
+        $personName = trim(preg_replace('/\s+/', ' ', $personName));
+        if ($personName === '') $personName = 'Seseorang';
+
+        $pdo->prepare("INSERT INTO debts (user_id, person_name, amount, type) VALUES (?, ?, ?, 'LENT')")->execute([$userId, $personName, $amountForDebt]);
+        $fmt = number_format($amountForDebt, 0, ',', '.');
+        echo json_encode([
+            'success' => true,
+            'status' => 'success',
+            'message' => "📝 *Piutang Dicatat!*\n\n*{$personName}* berhutang ke kamu sebesar Rp {$fmt}.\n\n_Ketik `lunas {$personName}` jika sudah dibayar._"
+        ]);
         exit;
     }
 
     if ($amount === null || $amount <= 0) {
         throw new RuntimeException('Format nominal tidak valid. Gunakan contoh: makan 50000 atau bensin 100rb');
-    }
-
-    // ── Logika Hutang Piutang ──
-    if (stripos($message, 'utang ') === 0 || stripos($message, 'hutang ') === 0) {
-        $personName = trim(str_ireplace(['utang ', 'hutang '], '', PahamFin_extract_description($message)));
-        if ($personName === '') throw new RuntimeException("Format salah. Contoh: utang budi 50000");
-        $pdo->prepare("INSERT INTO debts (user_id, person_name, amount, type) VALUES (?, ?, ?, 'OWE')")->execute([$userId, $personName, $amount]);
-        $fmt = number_format($amount, 0, ',', '.');
-        echo json_encode(['success' => true, 'status' => 'success', 'message' => "📝 Kamu berhutang ke *{$personName}* sebesar Rp {$fmt}."]);
-        exit;
-    }
-    if (stripos($message, 'piutang ') === 0 || stripos($message, 'pinjemin ') === 0) {
-        $personName = trim(str_ireplace(['piutang ', 'pinjemin '], '', PahamFin_extract_description($message)));
-        if ($personName === '') throw new RuntimeException("Format salah. Contoh: piutang andi 50000");
-        $pdo->prepare("INSERT INTO debts (user_id, person_name, amount, type) VALUES (?, ?, ?, 'LENT')")->execute([$userId, $personName, $amount]);
-        $fmt = number_format($amount, 0, ',', '.');
-        echo json_encode(['success' => true, 'status' => 'success', 'message' => "📝 *{$personName}* berhutang ke kamu sebesar Rp {$fmt}."]);
-        exit;
     }
     
     // ── 💰 Logika Set Target Tabungan Baru 💰
