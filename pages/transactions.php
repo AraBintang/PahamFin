@@ -328,9 +328,6 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                     <a href="print_report.php?<?= htmlspecialchars($filterQuery) ?>" target="_blank" class="px-4 py-2 bg-rose-600 text-white rounded-xl font-semibold shadow hover:bg-rose-700 flex items-center gap-2 text-sm transition">
                         <i class="ph ph-file-pdf text-lg"></i> Laporan PDF
                     </a>
-                    <a href="transactions.php?export=csv&<?= htmlspecialchars($filterQuery) ?>" class="px-4 py-2 bg-emerald-600 text-white rounded-xl font-semibold shadow hover:bg-emerald-700 flex items-center gap-2 text-sm transition">
-                        <i class="ph ph-file-csv text-lg"></i> CSV
-                    </a>
                     <button @click="openAdd()" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 flex items-center gap-2 text-sm transition">
                         <i class="ph ph-plus-circle text-lg"></i> Tambah
                     </button>

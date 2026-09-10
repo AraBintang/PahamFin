@@ -75,31 +75,39 @@ if ($dateFrom !== '' && $dateTo !== '') {
     <meta charset="UTF-8">
     <title>Laporan Keuangan - PahamFin</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Figtree', sans-serif; background: #f8fafc; color: #0f172a; }
         @media print {
             .no-print { display: none !important; }
-            body { background: white; color: black; }
-            .print-card { border: 1px solid #e2e8f0 !important; box-shadow: none !important; }
+            body { background: white; color: black; padding: 0 !important; }
+            .print-card { border: none !important; box-shadow: none !important; padding: 0 !important; }
         }
     </style>
 </head>
-<body class="p-6 md:p-10 max-w-4xl mx-auto">
+<body class="p-4 md:p-8 max-w-4xl mx-auto">
 
-    <!-- Tombol Cetak / Simpan PDF (Hanya di Layar Web) -->
-    <div class="no-print mb-6 flex justify-between items-center bg-blue-50 border border-blue-200 rounded-2xl p-4">
+    <!-- Header Banner dengan 2 Tombol Terpisah -->
+    <div class="no-print mb-6 flex flex-wrap justify-between items-center bg-blue-50 border border-blue-200 rounded-2xl p-4 gap-4">
         <div>
-            <h4 class="font-bold text-blue-900 text-sm">📄 Siap Cetak atau Simpan sebagai PDF</h4>
-            <p class="text-xs text-blue-700 mt-0.5">Klik tombol di sebelah kanan untuk langsung mengunduh atau mencetak laporan ini.</p>
+            <h4 class="font-bold text-blue-900 text-sm flex items-center gap-2">
+                <i class="ph ph-file-text text-lg"></i> Laporan Keuangan PahamFin
+            </h4>
+            <p class="text-xs text-blue-700 mt-0.5">Pilih untuk mengunduh berkas PDF ke perangkat atau mencetak langsung.</p>
         </div>
-        <button onclick="window.print()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md text-sm transition">
-            Cetak / Simpan PDF 🖨️
-        </button>
+        <div class="flex items-center gap-2.5">
+            <button onclick="downloadPDF()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center gap-1.5">
+                Unduh PDF 📥
+            </button>
+            <button onclick="window.print()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center gap-1.5">
+                Cetak Dokumen 🖨️
+            </button>
+        </div>
     </div>
 
-    <!-- Header Dokumen Laporan -->
-    <div class="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 print-card">
+    <!-- Header Dokumen Laporan (Target PDF & Print) -->
+    <div id="reportCard" class="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 print-card">
         <div class="flex justify-between items-start border-b border-slate-100 pb-6 mb-6">
             <div>
                 <h1 class="text-2xl font-black tracking-tight text-blue-900">PahamFin</h1>
@@ -166,5 +174,18 @@ if ($dateFrom !== '' && $dateTo !== '') {
         </div>
     </div>
 
+    <script>
+    function downloadPDF() {
+        const element = document.getElementById('reportCard');
+        const opt = {
+            margin:       [0.3, 0.3, 0.3, 0.3],
+            filename:     'Laporan_Keuangan_PahamFin.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+    </script>
 </body>
 </html>
