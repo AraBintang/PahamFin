@@ -187,6 +187,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     // Sisipkan UTF-8 BOM agar WPS Office & Microsoft Excel mengenali encoding
     fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
+    // UTF-8 BOM agar Microsoft Excel membaca karakter emoji, rupiah & aksen secara sempurna
+    fputs($output, "\xEF\xBB\xBF");
     $delimiter = ';';
 
     // Helper penulisan baris 5 kolom konsisten (kolom A, B, C, D, E)
@@ -207,41 +209,56 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     // Hitung Ringkasan
     $totalPemasukan = 0;
     $totalPengeluaran = 0;
+    $catSummary = [];
+
     foreach ($rows as $row) {
         $amt = (float) $row['amount'];
         if ($row['type'] === 'PEMASUKAN') {
             $totalPemasukan += $amt;
         } else {
             $totalPengeluaran += $amt;
+            $cName = $row['category_name'];
+            $catSummary[$cName] = ($catSummary[$cName] ?? 0) + $amt;
         }
     }
     $saldoBersih = $totalPemasukan - $totalPengeluaran;
 
-    // Header Laporan Center (Ditempatkan di Kolom C agar Center seperti Foto 2)
-    $writeRow('', '', '🚀 LAPORAN KEUANGAN PAHAMFIN');
-    $writeRow('', '', 'Catat Otomatis, Laporan Rapi, Keuangan Makin Sehat & Terencana! ✨');
-    $writeRow('', '', '📅 PERIODE LAPORAN    ' . $periodText);
-    $writeRow();
-    $writeRow('📊 RINGKASAN KEUANGAN');
-    $writeRow('🟢 Total Pemasukan', 'Rp ' . number_format($totalPemasukan, 0, ',', '.'));
-    $writeRow('🔴 Total Pengeluaran', 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'));
-    $writeRow('🟦 Saldo Bersih (Net)', 'Rp ' . number_format($saldoBersih, 0, ',', '.'));
+    // Header Kop Laporan
+    $writeRow('PAHAMFIN FINANCIAL REPORT');
+    $writeRow('Automatic Finance Assistant · pahamfin.softwaremahasiswa.com');
+    $writeRow('Periode Laporan', $periodText);
+    $writeRow('Tanggal Ekspor', date('d/m/Y H:i') . ' WIB');
     $writeRow();
 
-    // Header Tabel Utama
+    // Blok Ringkasan Keuangan
+    $writeRow('--- RINGKASAN KEUANGAN ---');
+    $writeRow('Total Pemasukan (+)', 'Rp ' . number_format($totalPemasukan, 0, ',', '.'));
+    $writeRow('Total Pengeluaran (-)', 'Rp ' . number_format($totalPengeluaran, 0, ',', '.'));
+    $writeRow('Saldo Bersih (Net)', 'Rp ' . number_format($saldoBersih, 0, ',', '.'));
+    $writeRow('Total Catatan Transaksi', count($rows) . ' Entri');
+    $writeRow();
+
+    // Header Tabel Utama Transaksi
     $writeRow('Tanggal', 'Kategori', 'Tipe', 'Deskripsi', 'Nominal (Rp)');
 
     // Isi Data Transaksi
     foreach ($rows as $row) {
         $amt = (float) $row['amount'];
+        $sign = $row['type'] === 'PEMASUKAN' ? '+' : '-';
         $writeRow(
-            $row['transaction_date'],
+            date('d/m/Y', strtotime($row['transaction_date'])),
             $row['category_name'],
             $row['type'],
             $row['description'],
-            number_format($amt, 0, ',', '.')
+            $sign . ' ' . number_format($amt, 0, ',', '.')
         );
     }
+
+    // Baris Total Penutup
+    $writeRow();
+    $writeRow('--- TOTAL ---', '', '', 'TOTAL PEMASUKAN', '+ Rp ' . number_format($totalPemasukan, 0, ',', '.'));
+    $writeRow('', '', '', 'TOTAL PENGELUARAN', '- Rp ' . number_format($totalPengeluaran, 0, ',', '.'));
+    $writeRow('', '', '', 'SALDO AKHIR (NET)', 'Rp ' . number_format($saldoBersih, 0, ',', '.'));
 
     fclose($output);
     exit;
