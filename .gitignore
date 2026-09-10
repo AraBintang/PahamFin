@@ -1,5 +1,6 @@
 # Senjata rahasia
 bot/.env
+bot/.env.do
 
 # Dependensi
 node_modules/
