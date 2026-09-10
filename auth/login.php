@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/includes/config.php';
 
@@ -15,9 +15,9 @@ if (!empty($_GET['next'])) {
 
 $error = '';
 if (isset($_GET['error'])) {
-    if ($_GET['error'] === 'google_not_configured') $error = 'Login Google belum dikonfigurasi (Client ID / Secret kosong).';
     if ($_GET['error'] === 'google_denied') $error = 'Akses Google ditolak atau gagal.';
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!PahamFin_csrf_verify()) $error = 'Sesi tidak valid.';
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Masuk - PahamFin</title>
     <link rel="icon" type="image/png" href="<?= PahamFin_URL_LOGO ?>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net"><script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/index.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -131,7 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label class="block text-sm font-semibold text-gray-700 dark:text-slate-300 mb-1.5 ml-1">Password</label>
                 <div class="relative" x-data="{ show: false }">
                     <i class="ph ph-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input :type="show ? 'text' : 'password'" name="password" required placeholder="••••••••" class="w-full pl-11 pr-12 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary outline-none transition-shadow">
+                    <input :type="show ? 'text' : 'password'" name="password" required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" class="w-full pl-11 pr-12 py-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50 focus:ring-2 focus:ring-primary outline-none transition-shadow">
                     <button type="button" @click="show = !show" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none">
                         <i class="ph text-lg" :class="show ? 'ph-eye-slash' : 'ph-eye'"></i>
                     </button>
@@ -163,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </body>
 </html>
+
 
 
 

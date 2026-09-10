@@ -1,12 +1,12 @@
-<?php
+﻿<?php
 /**
  * Halaman penghubung akun Telegram ke akun PahamFin.
  *
  * Alur:
  * 1. Bot Telegram generate token dan kirim link: /auth/tg_link.php?token=xxx
- * 2. User klik link → halaman ini muncul
- * 3. Jika user belum login → tampilkan form login
- * 4. Setelah login (atau sudah login) → Telegram ID dihubungkan ke akun
+ * 2. User klik link â†’ halaman ini muncul
+ * 3. Jika user belum login â†’ tampilkan form login
+ * 4. Setelah login (atau sudah login) â†’ Telegram ID dihubungkan ke akun
  * 5. Tampilkan pesan sukses + instruksi kembali ke bot
  */
 require_once __DIR__ . '/../app/db.php';
@@ -17,7 +17,7 @@ $error = '';
 $success = false;
 $botName = PahamFin_TELEGRAM_BOT_USERNAME;
 
-// ── Validasi token ──────────────────────────────────────────────────────────
+// â”€â”€ Validasi token â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if ($token === '') {
     $error = 'Link tidak valid. Minta link baru dari bot Telegram.';
 } else {
@@ -41,7 +41,7 @@ if ($token === '') {
 
 $telegramId = $linkToken['telegram_id'] ?? '';
 
-// ── Handle POST (proses login + hubungkan) ──────────────────────────────────
+// â”€â”€ Handle POST (proses login + hubungkan) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (!$error && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!PahamFin_csrf_verify()) {
         $error = 'Sesi tidak valid. Muat ulang halaman.';
@@ -86,7 +86,7 @@ if (!$error && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// ── Jika sudah login session dan belum sukses ──
+// â”€â”€ Jika sudah login session dan belum sukses â”€â”€
 if (!$error && !$success && !empty($_SESSION['user_id'])) {
     $userId = (int) $_SESSION['user_id'];
     
@@ -116,7 +116,7 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
     <title>Hubungkan Telegram - PahamFin</title>
     <link rel="icon" type="image/png" href="<?= PahamFin_URL_LOGO ?>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net"><script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/index.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -145,17 +145,17 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6">
 
         <?php if ($success): ?>
-        <!-- ── SUKSES ── -->
+        <!-- â”€â”€ SUKSES â”€â”€ -->
         <div class="text-center">
             <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ph ph-check-circle text-4xl text-green-500"></i>
             </div>
-            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Berhasil Terhubung! 🎉</h2>
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Berhasil Terhubung! ðŸŽ‰</h2>
             <p class="text-sm text-gray-600 dark:text-slate-300">
                 Halo <strong><?= htmlspecialchars($userName ?? '') ?></strong>, akun Telegram kamu sudah berhasil dihubungkan ke PahamFin!
             </p>
             <div class="mt-5 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl text-sm text-sky-800 dark:text-sky-300 text-left">
-                <p class="font-semibold mb-2">📱 Langkah selanjutnya:</p>
+                <p class="font-semibold mb-2">ðŸ“± Langkah selanjutnya:</p>
                 <p>Kembali ke bot Telegram <strong>@<?= htmlspecialchars($botName) ?></strong> dan kirim pesan seperti:</p>
                 <code class="block mt-2 bg-white dark:bg-slate-700 px-3 py-2 rounded-lg text-xs">makan 50000</code>
             </div>
@@ -164,12 +164,12 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
                 <i class="ph ph-telegram-logo text-xl"></i> Kembali ke Bot Telegram
             </a>
             <a href="<?= PahamFin_BASE_URL ?>/pages/index.php" class="block mt-3 text-sm text-center text-gray-500 dark:text-slate-400 hover:underline">
-                Buka Dashboard →
+                Buka Dashboard â†’
             </a>
         </div>
 
         <?php elseif ($error): ?>
-        <!-- ── ERROR ── -->
+        <!-- â”€â”€ ERROR â”€â”€ -->
         <div class="text-center">
             <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ph ph-warning-circle text-4xl text-red-500"></i>
@@ -183,7 +183,7 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
         </div>
 
         <?php else: ?>
-        <!-- ── FORM LOGIN ── -->
+        <!-- â”€â”€ FORM LOGIN â”€â”€ -->
         <div class="flex items-center gap-3 mb-5">
             <div class="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-xl flex items-center justify-center text-sky-500">
                 <i class="ph ph-telegram-logo text-xl"></i>
@@ -242,4 +242,5 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
 </div>
 </body>
 </html>
+
 

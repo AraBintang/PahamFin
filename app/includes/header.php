@@ -70,7 +70,9 @@ $searchApiUrl = PahamFin_URL_API . '/search.php';
     <title><?= htmlspecialchars(get_page_title($current_page, $isAdmin, $adminPage)) ?> - PahamFin</title>
     <link rel="icon" type="image/png" href="<?= PahamFin_URL_LOGO ?>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/index.js"></script>
 
     <script>
         tailwind.config = {
