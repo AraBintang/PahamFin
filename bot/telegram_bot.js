@@ -400,22 +400,26 @@ bot.on('photo', async (msg) => {
         const base64Data = buffer.toString('base64');
 
         let cleanJson = '';
-        const systemPrompt = `Analisis gambar ini yang berisi foto struk, nota, bukti transfer, atau bukti pembayaran QRIS/ShopeePay/Gopay/OVO/E-Wallet.
-Ekstrak informasi penting dan kembalikan HANYA format JSON valid.
+        const systemPrompt = `Analisis gambar ini yang berisi foto struk, nota, bukti transfer, atau screenshot bukti pembayaran QRIS / ShopeePay / Gopay / OVO / Dana / Bank.
+Ekstrak informasi transaksi utama dan kembalikan HANYA format JSON valid.
 
-PENTING UNTUK NOMINAL:
-Di Indonesia, titik (.) pada nominal seperti 30.210, 18.000, 49.000, 66.500 adalah pemisah ribuan (artinya 30210 rupiah, 18000 rupiah, 49000 rupiah, 66500 rupiah).
-Wajib kembalikan total_amount sebagai integer murni Rupiah tanpa titik dan tanpa koma (contoh: 30210, 18000, 49000, 66500).
+ATURAN PENTING NOMINAL:
+1. NOMINAL UTAMA: Ambil angka nominal transaksi utama di bagian atas berukuran besar (contoh: -Rp66.500, -Rp30.210, +Rp49.000, -Rp18.000).
+2. ABAIKAN BANNER PROMO: JANGAN mengambil angka pada banner/iklan promo (seperti "100RB", "Rp100.000", "Pasti Cashback", atau "+Rp100 Cashback").
+3. FORMAT RUPIAH: Di Indonesia, titik (.) pada 66.500, 30.210, 18.000 adalah pemisah ribuan (artinya 66500, 30210, 18000 rupiah). Wajib kembalikan total_amount sebagai integer murni Rupiah tanpa titik dan tanpa koma.
+
+ATURAN MERCHANT:
+Cari teks di bagian "Bayar Ke" atau "Isi Saldo Dari/Ke" atau nama toko di struk (contoh: "PBH Sirajudin Pedalangan", "PASAR CELL", "Kedai Risol", "ShopeePay").
 
 JSON Schema:
 {
-  "is_receipt": boolean (set true jika gambar adalah struk, nota, atau bukti pembayaran valid),
-  "merchant": string (nama toko/merchant/penerima/keterangan transaksi ringkas, contoh: "PASAR CELL", "Kedai Risol", "PBH Sirajudin", "Isi Saldo ShopeePay"),
-  "total_amount": number (total nominal murni dalam Rupiah integer, contoh: 30210, 18000, 49000, 66500),
-  "items_summary": string (ringkasan item jika ada, pisah koma)
+  "is_receipt": boolean (true jika gambar adalah bukti bayar/struk/transfer valid),
+  "merchant": string (nama toko/merchant/penerima ringkas),
+  "total_amount": number (nominal transaksi utama integer Rupiah, contoh: 66500, 30210, 18000, 49000),
+  "items_summary": string (ringkasan item jika ada)
 }
 
-Jika gambar BUKAN struk/nota/bukti bayar, set is_receipt: false, total_amount: 0, merchant: "".`;
+Jika gambar BUKAN struk/nota/bukti bayar valid, set is_receipt: false, total_amount: 0, merchant: "".`;
 
         if (OPENAI_API_KEY) {
             try {
@@ -433,7 +437,7 @@ Jika gambar BUKAN struk/nota/bukti bayar, set is_receipt: false, total_amount: 0
                                     type: "image_url",
                                     image_url: {
                                         url: `data:image/jpeg;base64,${base64Data}`,
-                                        detail: "low"
+                                        detail: "auto"
                                     }
                                 }
                             ]
