@@ -68,13 +68,30 @@ define('PahamFin_TELEGRAM_ADMIN_ID', getenv('PahamFin_TELEGRAM_ADMIN_ID') ?: '')
 define('PahamFin_WEBHOOK_SECRET', getenv('PahamFin_WEBHOOK_SECRET') ?: 'UbahIniDenganKunciRahasiaPanjang');
 
 /* ------------------------------------------------------------------
+ * DIGITALOCEAN — BOT SERVER
+ * ------------------------------------------------------------------ */
+// IP / domain server DigitalOcean tempat bot Node.js berjalan.
+// Dipakai jika kamu menjalankan bot di DO Droplet terpisah dari Hostinger.
+// Kosongkan jika bot dan web masih di server yang sama.
+define('PahamFin_DO_BOT_IP',     getenv('PahamFin_DO_BOT_IP')     ?: '');
+
+// Token API DigitalOcean (dari cloud.digitalocean.com/account/api/tokens).
+// Dipakai untuk keperluan manajemen server lewat DO API (opsional).
+define('PahamFin_DO_API_TOKEN',  getenv('PahamFin_DO_API_TOKEN')  ?: '');
+
+// URL webhook PHP yang dikirim ke bot di DO.
+// Otomatis menggunakan PahamFin_BASE_URL jika tidak diset sendiri.
+// Contoh: 'https://pahamfin.softwaremahasiswa.com/api/webhook.php'
+define('PahamFin_DO_WEBHOOK_URL', getenv('PahamFin_DO_WEBHOOK_URL') ?: PahamFin_BASE_URL . '/api/webhook.php');
+
+/* ------------------------------------------------------------------
  * LOGIN DENGAN GOOGLE (OAuth 2.0)
  * ------------------------------------------------------------------ */
 // Isi Client ID & Client Secret dari Google Cloud Console
 // (https://console.cloud.google.com/apis/credentials).
 // Kosongkan bila belum pakai login Google.
-define('PahamFin_GOOGLE_CLIENT_ID', getenv('PahamFin_GOOGLE_CLIENT_ID') ?: 'YOUR_GOOGLE_CLIENT_ID');
-define('PahamFin_GOOGLE_CLIENT_SECRET', getenv('PahamFin_GOOGLE_CLIENT_SECRET') ?: 'YOUR_GOOGLE_CLIENT_SECRET');
+define('PahamFin_GOOGLE_CLIENT_ID', getenv('PahamFin_GOOGLE_CLIENT_ID') ?: '');
+define('PahamFin_GOOGLE_CLIENT_SECRET', getenv('PahamFin_GOOGLE_CLIENT_SECRET') ?: '');
 
 // Redirect URI yang didaftarkan di Google (harus persis sama).
 define('PahamFin_GOOGLE_REDIRECT_URI', getenv('PahamFin_GOOGLE_REDIRECT_URI') ?: PahamFin_BASE_URL . '/auth/google-auth.php');
