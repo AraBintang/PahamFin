@@ -659,10 +659,13 @@ try {
 
     $fmtAmount = number_format($amount, 0, ',', '.');
     $walletText = $walletName ? " (via {$walletName})" : "";
+    $icon = ($category['type'] === 'PEMASUKAN') ? "🟢 *Uang Masuk (+)*" : "🔴 *Pengeluaran (-)*";
+    $descInfo = $finalDescription ? " _({$finalDescription})_" : "";
+
     echo json_encode([
         'success' => true,
         'status' => 'success',
-        'message' => "Transaksi berhasil dicatat: {$category['name']} - Rp {$fmtAmount} {$walletText}",
+        'message' => "{$icon}\n• *Kategori:* {$category['name']}{$descInfo}\n• *Nominal:* Rp {$fmtAmount}{$walletText}",
         'type' => $category['type'],
         'category' => $category['name'],
         'amount' => $amount,
