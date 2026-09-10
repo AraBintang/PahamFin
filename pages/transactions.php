@@ -184,55 +184,41 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     header('Content-Disposition: attachment; filename=Laporan_PahamFin_' . date('Y-m-d') . '.csv');
     $output = fopen('php://output', 'w');
 
-    // Menentukan teks periode
-    $periodText = "Semua Waktu";
-    if ($filters['date_from'] !== '' && $filters['date_to'] !== '') {
-        $periodText = $filters['date_from'] . " s/d " . $filters['date_to'];
-    } elseif ($filters['date_from'] !== '') {
-        $periodText = "Sejak " . $filters['date_from'];
-    } elseif ($filters['date_to'] !== '') {
-        $periodText = "Hingga " . $filters['date_to'];
-    }
+    // Sisipkan UTF-8 BOM agar WPS Office & Microsoft Excel mengenali encoding
+    fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-    // Hitung ringkasan
+    // Gunakan titik koma (;) sebagai pemisah kolom standar Windows Excel Indonesia
+    $delimiter = ';';
+
+    // Header Tabel Utama
+    fputcsv($output, ['Tanggal', 'Kategori', 'Tipe', 'Deskripsi', 'Nominal (Rp)'], $delimiter);
+
     $totalPemasukan = 0;
     $totalPengeluaran = 0;
+
     foreach ($rows as $row) {
+        $amt = (float) $row['amount'];
         if ($row['type'] === 'PEMASUKAN') {
-            $totalPemasukan += (float) $row['amount'];
+            $totalPemasukan += $amt;
         } else {
-            $totalPengeluaran += (float) $row['amount'];
+            $totalPengeluaran += $amt;
         }
-    }
-    $saldoBersih = $totalPemasukan - $totalPengeluaran;
 
-    // Tulis Header Kustom
-    fputcsv($output, ['Laporan PahamFin']);
-    fputcsv($output, ['PahamFin membantu Anda melacak setiap pemasukan dan pengeluaran secara akurat untuk keuangan yang lebih sehat.']);
-    fputcsv($output, []);
-    fputcsv($output, ['Periode Laporan', $periodText]);
-    fputcsv($output, []);
-    
-    // Tulis Ringkasan
-    fputcsv($output, ['Ringkasan Keuangan']);
-    fputcsv($output, ['Total Pemasukan', $totalPemasukan]);
-    fputcsv($output, ['Total Pengeluaran', $totalPengeluaran]);
-    fputcsv($output, ['Saldo Bersih (Net)', $saldoBersih]);
-    fputcsv($output, []);
-
-    // Tulis Header Tabel
-    fputcsv($output, ['Tanggal', 'Kategori', 'Tipe', 'Deskripsi', 'Nominal (Rp)']);
-    
-    // Tulis Data
-    foreach ($rows as $row) {
         fputcsv($output, [
             $row['transaction_date'],
             $row['category_name'],
             $row['type'],
             $row['description'],
-            $row['amount']
-        ]);
+            number_format($amt, 0, ',', '.')
+        ], $delimiter);
     }
+
+    // Baris Pemisah Ringkasan
+    fputcsv($output, [], $delimiter);
+    fputcsv($output, ['---', '---', '---', 'TOTAL PEMASUKAN', number_format($totalPemasukan, 0, ',', '.')], $delimiter);
+    fputcsv($output, ['---', '---', '---', 'TOTAL PENGELUARAN', number_format($totalPengeluaran, 0, ',', '.')], $delimiter);
+    fputcsv($output, ['---', '---', '---', 'SALDO BERSIH (NET)', number_format($totalPemasukan - $totalPengeluaran, 0, ',', '.')], $delimiter);
+
     fclose($output);
     exit;
 }
