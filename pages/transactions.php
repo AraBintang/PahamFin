@@ -217,11 +217,10 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     }
     $saldoBersih = $totalPemasukan - $totalPengeluaran;
 
-    // Header Laporan Modern & Semangat (5 Kolom Rapi)
-    $writeRow('🚀 LAPORAN KEUANGAN PAHAMFIN');
-    $writeRow('Catat Otomatis, Laporan Rapi, Keuangan Makin Sehat & Terencana! ✨');
-    $writeRow();
-    $writeRow('📅 PERIODE LAPORAN', $periodText);
+    // Header Laporan Center (Ditempatkan di Kolom C agar Center seperti Foto 2)
+    $writeRow('', '', '🚀 LAPORAN KEUANGAN PAHAMFIN');
+    $writeRow('', '', 'Catat Otomatis, Laporan Rapi, Keuangan Makin Sehat & Terencana! ✨');
+    $writeRow('', '', '📅 PERIODE LAPORAN    ' . $periodText);
     $writeRow();
     $writeRow('📊 RINGKASAN KEUANGAN');
     $writeRow('🟢 Total Pemasukan', 'Rp ' . number_format($totalPemasukan, 0, ',', '.'));
