@@ -102,7 +102,7 @@ async function callWebhook(payload) {
 
     const response = await axios.post(WEBHOOK_URL, payload, {
         headers,
-        timeout: 15000,
+        timeout: 60000,
     });
 
     return response.data;
@@ -496,8 +496,8 @@ Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: 
             description: `${merchant}${items}`
         });
 
-        if (webhookRes.data && webhookRes.data.message) {
-            await reply(chatId, `🧾 *Scan Struk Berhasil!*\n\n` + webhookRes.data.message);
+        if (webhookRes && webhookRes.message) {
+            await reply(chatId, `🧾 *Scan Struk Berhasil!*\n\n` + webhookRes.message);
         } else {
             await reply(chatId, `✅ *Struk Terbaca!*\n\n• **Keterangan:** ${merchant}\n• **Total:** Rp ${new Intl.NumberFormat('id-ID').format(amount)}\n\n_Transaksi berhasil dicatat!_`);
         }
