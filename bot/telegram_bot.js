@@ -402,18 +402,19 @@ bot.on('photo', async (msg) => {
         let cleanJson = '';
 
         if (OPENAI_API_KEY) {
-            const OpenAI = require('openai');
-            const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+            try {
+                const OpenAI = require('openai');
+                const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
 
-            const response = await openai.chat.completions.create({
-                model: "gpt-4o-mini",
-                messages: [
-                    {
-                        role: "user",
-                        content: [
-                            {
-                                type: "text",
-                                text: `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
+                const response = await openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: [
+                        {
+                            role: "user",
+                            content: [
+                                {
+                                    type: "text",
+                                    text: `Analisis gambar ini yang berisi foto struk atau nota belanjaan.
 Ekstrak informasi penting dan kembalikan HANYA format JSON valid tanpa tanda backtick atau teks lain.
 JSON Schema:
 {
@@ -424,20 +425,34 @@ JSON Schema:
 }
 
 Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: "".`
-                            },
-                            {
-                                type: "image_url",
-                                image_url: {
-                                    url: `data:image/jpeg;base64,${base64Data}`
+                                },
+                                {
+                                    type: "image_url",
+                                    image_url: {
+                                        url: `data:image/jpeg;base64,${base64Data}`
+                                    }
                                 }
-                            }
-                        ]
-                    }
-                ],
-                response_format: { type: "json_object" }
-            });
+                            ]
+                        }
+                    ],
+                    response_format: { type: "json_object" }
+                });
 
-            cleanJson = response.choices[0].message.content.trim();
+                cleanJson = response.choices[0].message.content.trim();
+            } catch (openAiErr) {
+                console.error('OpenAI error:', openAiErr.message);
+                if (GEMINI_API_KEY) {
+                    const { GoogleGenerativeAI } = require('@google/generative-ai');
+                    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+                    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+                    const prompt = `Analisis foto struk belanjaan ini. Kembalikan JSON valid: {"is_receipt": true, "merchant": "Nama Toko", "total_amount": 10000, "items_summary": "Item"}`;
+                    const imagePart = { inlineData: { data: base64Data, mimeType: 'image/jpeg' } };
+                    const result = await model.generateContent([prompt, imagePart]);
+                    cleanJson = result.response.text().trim().replace(/```json/gi, '').replace(/```/g, '').trim();
+                } else {
+                    throw openAiErr;
+                }
+            }
         } else {
             // Fallback ke Gemini Vision
             const { GoogleGenerativeAI } = require('@google/generative-ai');
@@ -504,7 +519,8 @@ Jika gambar BUKAN struk/nota, set is_receipt: false, total_amount: 0, merchant: 
 
     } catch (err) {
         console.error('Photo handler error:', err);
-        await reply(chatId, `⚠️ Terjadi kesalahan saat memproses foto struk. Pastikan koneksi dan foto jelas.`);
+        const errMsg = err?.response?.data?.error?.message || err?.message || String(err);
+        await reply(chatId, `⚠️ Gagal memproses foto struk:\n\`${errMsg}\``);
     }
 });
 
