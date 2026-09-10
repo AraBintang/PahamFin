@@ -396,9 +396,14 @@ function PahamFin_bot_command(PDO $pdo, int $userId, string $action, string $des
         $msg .= "• `target mobil 150jt` — Buat target tabungan baru\n";
         $msg .= "• `nabung rumah 500rb` — Tambah setoran ke target Rumah\n\n";
 
-        $msg .= "*👛 Kelola Dompet:*\n";
-        $msg .= "• `add dompet Gopay saldo 500k` — Buat dompet baru\n";
-        $msg .= "• `topup gopay 100k` — Tambah saldo dompet\n\n";
+        $msg .= "*👛 Kelola & Transfer Dompet:*\n";
+        $msg .= "• `pindah 500k dari bca ke gopay` — Transfer saldo antar dompet 💸\n";
+        $msg .= "• `topup gopay 100k` — Tambah saldo dompet\n";
+        $msg .= "• `add dompet Gopay saldo 500k` — Buat dompet baru\n\n";
+
+        $msg .= "*📝 Pengingat Tagihan Otomatis:*\n";
+        $msg .= "• `/done 3` — Tandai pengingat ID 3 selesai/lunas\n";
+        $msg .= "• Bot otomatis mengirim notifikasi chat H-2 & Hari H sebelum jatuh tempo! 🔔\n\n";
 
         $msg .= "*🤝 Hutang & Piutang:*\n";
         $msg .= "• `utang budi 50000` — Catat kamu berhutang ke Budi\n";
