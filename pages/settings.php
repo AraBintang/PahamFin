@@ -71,20 +71,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $passwordChanged = true;
     }
 
-    if ($profilePicPath) {
-        $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone_number = ?, telegram_id = ?, profile_pic = ? WHERE id = ?");
-        $stmt->execute([$name, $email, $phone, $telegramId !== '' ? $telegramId : null, $profilePicPath, $user_id]);
-    } else {
-        $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone_number = ?, telegram_id = ? WHERE id = ?");
-        $stmt->execute([$name, $email, $phone, $telegramId !== '' ? $telegramId : null, $user_id]);
+    try {
+        $phoneVal = ($phone !== '') ? $phone : null;
+        $telegramVal = ($telegramId !== '') ? $telegramId : null;
+
+        if ($profilePicPath) {
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone_number = ?, telegram_id = ?, profile_pic = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $phoneVal, $telegramVal, $profilePicPath, $user_id]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE users SET name = ?, email = ?, phone_number = ?, telegram_id = ? WHERE id = ?");
+            $stmt->execute([$name, $email, $phoneVal, $telegramVal, $user_id]);
+        }
+
+        if ($passwordChanged) {
+            $upd = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $upd->execute([password_hash($newPass, PASSWORD_DEFAULT), $user_id]);
+        }
+
+        $_SESSION['flash_msg'] = 'Pengaturan berhasil disimpan.';
+        $_SESSION['flash_type'] = 'success';
+    } catch (Throwable $e) {
+        $errText = strtolower($e->getMessage());
+        if (strpos($errText, '23000') !== false || strpos($errText, 'duplicate') !== false) {
+            if (strpos($errText, 'telegram_id') !== false) {
+                $_SESSION['flash_msg'] = '⚠️ ID Telegram ini sudah digunakan oleh akun lain.';
+            } elseif (strpos($errText, 'email') !== false) {
+                $_SESSION['flash_msg'] = '⚠️ Alamat Email ini sudah digunakan oleh akun lain.';
+            } elseif (strpos($errText, 'phone') !== false) {
+                $_SESSION['flash_msg'] = '⚠️ Nomor WhatsApp ini sudah digunakan oleh akun lain.';
+            } else {
+                $_SESSION['flash_msg'] = '⚠️ Email, Nomor WhatsApp, atau ID Telegram sudah digunakan oleh akun lain.';
+            }
+        } else {
+            $_SESSION['flash_msg'] = '⚠️ Gagal menyimpan pengaturan: ' . $e->getMessage();
+        }
+        $_SESSION['flash_type'] = 'error';
     }
 
-    if ($passwordChanged) {
-        $upd = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
-        $upd->execute([password_hash($newPass, PASSWORD_DEFAULT), $user_id]);
-    }
-
-    $_SESSION['flash_msg'] = 'Pengaturan berhasil disimpan.';
     header('Location: settings.php');
     exit;
 }
