@@ -85,6 +85,14 @@ define('PahamFin_DO_API_TOKEN',  getenv('PahamFin_DO_API_TOKEN')  ?: '');
 define('PahamFin_DO_WEBHOOK_URL', getenv('PahamFin_DO_WEBHOOK_URL') ?: PahamFin_BASE_URL . '/api/webhook.php');
 
 /* ------------------------------------------------------------------
+ * KONFIGURASI DATABASE (MYSQL / MARIADB)
+ * ------------------------------------------------------------------ */
+define('PahamFin_DB_HOST', getenv('PahamFin_DB_HOST') ?: 'localhost');
+define('PahamFin_DB_NAME', getenv('PahamFin_DB_NAME') ?: 'PahamFin_db');
+define('PahamFin_DB_USER', getenv('PahamFin_DB_USER') ?: 'root');
+define('PahamFin_DB_PASS', getenv('PahamFin_DB_PASS') ?: '');
+
+/* ------------------------------------------------------------------
  * LOGIN DENGAN GOOGLE (OAuth 2.0)
  * ------------------------------------------------------------------ */
 // Isi Client ID & Client Secret dari Google Cloud Console

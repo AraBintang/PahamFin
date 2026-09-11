@@ -253,30 +253,40 @@ $databaseDriver = getenv('PahamFin_DB_DRIVER') ?: 'mysql';
 
 try {
     if ($databaseDriver === 'mysql') {
-        $host = getenv('PahamFin_DB_HOST') ?: 'localhost';
-        $db = getenv('PahamFin_DB_NAME') ?: 'PahamFin_db';
-        $user = getenv('PahamFin_DB_USER') ?: 'root';
-        $pass = getenv('PahamFin_DB_PASS') ?: '';
+        $host = defined('PahamFin_DB_HOST') ? PahamFin_DB_HOST : (getenv('PahamFin_DB_HOST') ?: 'localhost');
+        $db   = defined('PahamFin_DB_NAME') ? PahamFin_DB_NAME : (getenv('PahamFin_DB_NAME') ?: 'PahamFin_db');
+        $user = defined('PahamFin_DB_USER') ? PahamFin_DB_USER : (getenv('PahamFin_DB_USER') ?: 'root');
+        $pass = defined('PahamFin_DB_PASS') ? PahamFin_DB_PASS : (getenv('PahamFin_DB_PASS') ?: '');
 
         $pdo = new PDO("mysql:host={$host};dbname={$db};charset=utf8mb4", $user, $pass, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
     }
-} catch (PDOException $e) {
+} catch (Throwable $e) {
     $pdo = null;
 }
 
 if (!$pdo) {
-    $sqlitePath = __DIR__ . '/PahamFin.db';
-    $pdo = new PDO("sqlite:{$sqlitePath}", null, null, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
+    try {
+        $sqlitePath = __DIR__ . '/PahamFin.db';
+        $pdo = new PDO("sqlite:{$sqlitePath}", null, null, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]);
+    } catch (Throwable $e) {
+        $pdo = null;
+    }
 }
 
-$databaseDriver = strtolower((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
-PahamFin_schema($pdo, $databaseDriver);
+if ($pdo) {
+    try {
+        $databaseDriver = strtolower((string) $pdo->getAttribute(PDO::ATTR_DRIVER_NAME));
+        PahamFin_schema($pdo, $databaseDriver);
+    } catch (Throwable $e) {
+        error_log('PahamFin schema notice: ' . $e->getMessage());
+    }
+}
 
 // ---- Migrasi: tambah kolom remember_token untuk "Remember Me" ----
 function PahamFin_column_exists(PDO $pdo, string $table, string $column): bool
