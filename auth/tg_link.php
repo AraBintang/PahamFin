@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Halaman penghubung akun Telegram ke akun PahamFin.
  *
@@ -61,7 +61,7 @@ if (!$error && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtCheck = $pdo->prepare("SELECT id FROM users WHERE telegram_id = ? AND id != ? LIMIT 1");
                 $stmtCheck->execute([$telegramId, $user['id']]);
                 if ($stmtCheck->fetch()) {
-                    $error = 'Akun Telegram ini sudah terhubung ke akun PahamFin lain.';
+                    $error = '⚠️ ID Telegram ini sudah digunakan/dipakai oleh akun PahamFin lain.';
                 } else {
                     // Hubungkan Telegram ID ke akun
                     $pdo->prepare("UPDATE users SET telegram_id = ? WHERE id = ?")
@@ -94,7 +94,7 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
     $stmtCheck = $pdo->prepare("SELECT id FROM users WHERE telegram_id = ? AND id != ? LIMIT 1");
     $stmtCheck->execute([$telegramId, $userId]);
     if ($stmtCheck->fetch()) {
-        $error = 'Akun Telegram ini sudah terhubung ke akun PahamFin lain.';
+        $error = '⚠️ ID Telegram ini sudah digunakan/dipakai oleh akun PahamFin lain.';
     } else {
         $pdo->prepare("UPDATE users SET telegram_id = ? WHERE id = ?")
             ->execute([$telegramId, $userId]);

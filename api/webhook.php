@@ -87,8 +87,13 @@ function PahamFin_find_or_create_user(PDO $pdo, ?string $phone, ?string $telegra
         $stmt->execute([$phoneNumber]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($user) {
-            // AUTO-LINK: Akun web ditemukan → hubungkan telegram_id otomatis
+            // AUTO-LINK: Akun web ditemukan → hubungkan telegram_id otomatis jika belum dipakai user lain
             if ($telegramId && empty($user['telegram_id'])) {
+                $checkTg = $pdo->prepare("SELECT id FROM users WHERE telegram_id = ? AND id != ? LIMIT 1");
+                $checkTg->execute([$telegramId, $user['id']]);
+                if ($checkTg->fetch()) {
+                    throw new RuntimeException('⚠️ ID Telegram ini sudah digunakan/dipakai oleh akun PahamFin lain.');
+                }
                 $pdo->prepare("UPDATE users SET telegram_id = ? WHERE id = ?")->execute([$telegramId, $user['id']]);
                 $user['telegram_id'] = $telegramId;
             }
@@ -101,17 +106,33 @@ function PahamFin_find_or_create_user(PDO $pdo, ?string $phone, ?string $telegra
         throw new RuntimeException('Nomor HP atau Telegram ID wajib diisi.');
     }
 
+    // Cek apakah telegram_id sudah terpakai di akun lain sebelum INSERT
+    if ($telegramId) {
+        $checkTg = $pdo->prepare("SELECT id FROM users WHERE telegram_id = ? LIMIT 1");
+        $checkTg->execute([$telegramId]);
+        if ($checkTg->fetch()) {
+            throw new RuntimeException('⚠️ ID Telegram ini sudah digunakan/dipakai oleh akun PahamFin lain.');
+        }
+    }
+
     // Generate phone dari telegram ID jika tidak ada phone
     if (!$phoneNumber) {
         $phoneNumber = '628' . preg_replace('/[^0-9]/', '', (string) $telegramId);
     }
 
-    $insert = $pdo->prepare("INSERT INTO users (name, phone_number, telegram_id, email, password) VALUES (?, ?, ?, NULL, '')");
-    $insert->execute([
-        $name !== '' ? $name : 'Pengguna Baru',
-        $phoneNumber,
-        $telegramId,
-    ]);
+    try {
+        $insert = $pdo->prepare("INSERT INTO users (name, phone_number, telegram_id, email, password) VALUES (?, ?, ?, NULL, '')");
+        $insert->execute([
+            $name !== '' ? $name : 'Pengguna Baru',
+            $phoneNumber,
+            $telegramId,
+        ]);
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000 || strpos($e->getMessage(), 'Duplicate entry') !== false) {
+            throw new RuntimeException('⚠️ ID Telegram ini sudah digunakan/dipakai oleh akun PahamFin lain.');
+        }
+        throw $e;
+    }
 
     $userId = (int) $pdo->lastInsertId();
 

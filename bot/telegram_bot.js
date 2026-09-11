@@ -404,8 +404,6 @@ bot.on('photo', async (msg) => {
             return;
         }
 
-        await reply(chatId, `🔍 *Sedang membaca foto struk belanjaan kamu dengan ChatGPT AI...* Mohon tunggu sebentar ⏳`);
-
         // Ambil foto dengan resolusi tertinggi (terakhir di array photo)
         const photoArr = msg.photo;
         const fileId = photoArr[photoArr.length - 1].file_id;
