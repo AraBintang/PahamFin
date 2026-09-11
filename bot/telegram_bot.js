@@ -56,7 +56,14 @@ function loadEnv() {
 const ENV = loadEnv();
 const { TELEGRAM_TOKEN, TELEGRAM_BOT_USERNAME, WEBHOOK_URL, PAHAMFIN_WEBHOOK_SECRET, GEMINI_API_KEY, OPENAI_API_KEY } = ENV;
 
+// Derive base URLs dari WEBHOOK_URL agar tidak salah saat path berubah
+// WEBHOOK_URL contoh: https://pahamfin.softwaremahasiswa.com/api/webhook.php
+const API_BASE    = WEBHOOK_URL.replace(/\/webhook\.php$/, '');                // .../api
+const BASE_WEB_URL = API_BASE.replace(/\/api$/, '');                           // https://pahamfin.softwaremahasiswa.com
+
 console.log('🌐 Webhook URL:', WEBHOOK_URL);
+console.log('🌐 API Base   :', API_BASE);
+console.log('🌐 Web URL    :', BASE_WEB_URL);
 console.log('🤖 AI Scan Struk Status:', (OPENAI_API_KEY || GEMINI_API_KEY) ? '✅ AKTIF (Key AI terdeteksi)' : '❌ NONAKTIF (API Key AI belum diset di .env)');
 
 if (!TELEGRAM_TOKEN || TELEGRAM_TOKEN.includes('MASUKKAN') || TELEGRAM_TOKEN.includes('ISI_TOKEN')) {
@@ -130,13 +137,12 @@ async function callWebhook(payload) {
  * Jika belum, langsung buatkan akun otomatis.
  */
 async function checkRegistered(telegramId, name) {
-    const checkUrl = WEBHOOK_URL.replace('webhook.php', 'api/tg_check.php') + '?telegram_id=' + telegramId;
+    const checkUrl = API_BASE + '/tg_check.php?telegram_id=' + telegramId;
     try {
         const res = await axios.get(checkUrl, { timeout: 8000 });
         if (res.data.registered) {
             return { registered: true };
         }
-        
         return { 
             registered: false, 
             is_new: true,
@@ -263,7 +269,7 @@ setInterval(async () => {
         const headers = {};
         if (PAHAMFIN_WEBHOOK_SECRET) headers['X-PahamFin-Key'] = PAHAMFIN_WEBHOOK_SECRET;
         
-        const cronUrl = WEBHOOK_URL.replace('webhook.php', 'cron_trigger.php');
+        const cronUrl = API_BASE + '/cron_trigger.php';
         const res = await axios.get(cronUrl, { headers, timeout: 10000 });
         
         if (res.data && res.data.success && res.data.send) {
