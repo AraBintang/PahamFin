@@ -453,62 +453,46 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 </section>
 
 <!-- ===================== HARGA ===================== -->
+<?php
+$landingPlans = PahamFin_get_subscription_plans($pdo, true);
+?>
 <section id="harga" class="py-16 lg:py-24 bg-white/60 dark:bg-slate-900/80 backdrop-blur-sm">
     <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40">
         <div class="text-center mb-12">
-            <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Harga</h2>
-            <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Mulai gratis dan tetap gratis untuk penggunaan pribadi. Panel admin tanpa biaya tersembunyi.</p>
+            <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Pilihan Paket Langganan</h2>
+            <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Pilih durasi paket yang sesuai dengan kebutuhanmu. Seluruh paket mendapatkan akses penuh ke seluruh fitur PahamFin.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="rounded-2xl p-8 border border-blue-200 dark:border-slate-700 text-center bg-gradient-to-b from-white/90 to-blue-50/70 dark:from-slate-800/80 dark:to-slate-700/60 border border-blue-100 dark:border-slate-700">
-                <h3 class="font-display text-lg font-bold text-dark dark:text-white">Personal</h3>
-                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Untuk keperluan pribadi</p>
-                <p class="mt-5"><span class="text-3xl font-bold text-dark dark:text-white">Gratis</span></p>
-                <ul class="mt-6 space-y-3 text-sm text-gray-600 dark:text-slate-300 text-left">
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Catatan otomatis via chat</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Dashboard & riwayat transaksi</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> 3 kategori default</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Bot Telegram</li>
-                </ul>
+            <?php foreach ($landingPlans as $idx => $plan): 
+                $isPopular = (stripos($plan['name'], 'Bulan') !== false || (int)$plan['duration_days'] === 30);
+            ?>
+            <div class="rounded-2xl p-8 border text-center relative flex flex-col justify-between transition-all <?= $isPopular ? 'border-2 border-primary scale-[1.02] shadow-[0_10px_35px_rgba(10,88,165,0.2)] bg-gradient-to-b from-blue-50/60 to-blue-100/80 dark:from-slate-800/80 dark:to-blue-900/30' : 'border-blue-100 dark:border-slate-700 bg-gradient-to-b from-white/90 to-blue-50/70 dark:from-slate-800/80 dark:to-slate-700/60' ?>">
+                <div>
+                    <?php if ($isPopular): ?>
+                        <span class="inline-block bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">⭐ Paling Populer</span>
+                    <?php endif; ?>
+                    <h3 class="font-display text-xl font-bold text-dark dark:text-white"><?= htmlspecialchars($plan['name']) ?></h3>
+                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1"><?= htmlspecialchars($plan['description'] ?: 'Masa aktif ' . (int)$plan['duration_days'] . ' Hari') ?></p>
+                    <p class="mt-5">
+                        <span class="text-3xl font-extrabold text-primary dark:text-blue-400">Rp <?= number_format($plan['price'], 0, ',', '.') ?></span>
+                        <span class="text-xs text-gray-400 font-medium"> / <?= (int)$plan['duration_days'] ?> hari</span>
+                    </p>
+                    <ul class="mt-6 space-y-3 text-sm text-gray-600 dark:text-slate-300 text-left border-t border-gray-200 dark:border-slate-700/50 pt-4">
+                        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-500 text-base"></i> Bot Telegram Otomatis 24/7</li>
+                        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-500 text-base"></i> AI Scan Struk Belanja</li>
+                        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-500 text-base"></i> Fitur Tabungan & Target</li>
+                        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-500 text-base"></i> Manajemen Hutang & Piutang</li>
+                        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-500 text-base"></i> Export Laporan & Cetak PDF</li>
+                    </ul>
+                </div>
+
                 <?php if (!$isLoggedIn): ?>
-                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90">Mulai Gratis</a>
+                    <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90">Daftar & Berlangganan</a>
                 <?php else: ?>
-                <a href="index.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg">Buka Dashboard</a>
+                    <a href="pages/pricing.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg hover:opacity-90">Beli Paket Ini</a>
                 <?php endif; ?>
             </div>
-            <div class="rounded-2xl p-8 border-2 border-primary text-center scale-[1.02] shadow-[0_10px_35px_rgba(10,88,165,0.2)] bg-gradient-to-b from-blue-50/60 to-blue-100/80 dark:from-slate-800/80 dark:to-blue-900/30">
-                <span class="inline-block bg-primary text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">Populer</span>
-                <h3 class="font-display text-lg font-bold text-dark dark:text-white">Keluarga</h3>
-                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Beberapa anggota satu rumah</p>
-                <p class="mt-5"><span class="text-3xl font-bold text-dark dark:text-white">Gratis</span></p>
-                <ul class="mt-6 space-y-3 text-sm text-gray-600 dark:text-slate-300 text-left">
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Semua fitur Personal</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Kategori tak terbatas</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Anggaran per kategori</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Tips pengelolaan keuangan</li>
-                </ul>
-                <?php if (!$isLoggedIn): ?>
-                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg">Daftar Sekarang</a>
-                <?php else: ?>
-                <a href="index.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg">Lanjut ke Dashboard</a>
-                <?php endif; ?>
-            </div>
-            <div class="rounded-2xl p-8 border border-orange-200 dark:border-slate-700 text-center bg-gradient-to-b from-white/90 to-orange-50/70 dark:from-slate-800/80 dark:to-slate-700/60 border border-orange-100 dark:border-slate-700">
-                <h3 class="font-display text-lg font-bold text-dark dark:text-white">UMKM</h3>
-                <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Untuk usaha kecil & menengah</p>
-                <p class="mt-5"><span class="text-3xl font-bold text-dark dark:text-white">Gratis</span></p>
-                <ul class="mt-6 space-y-3 text-sm text-gray-600 dark:text-slate-300 text-left">
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Semua fitur Keluarga</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Pencatatan kas usaha</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Laporan per kategori</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-check text-green-600 dark:text-green-400"></i> Kemudahan ekspor data</li>
-                </ul>
-                <?php if (!$isLoggedIn): ?>
-                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg">Daftar Sekarang</a>
-                <?php else: ?>
-                <a href="index.php" class="mt-8 inline-flex w-full justify-center h-11 items-center bg-primary text-white border border-primary font-semibold rounded-lg">Buka Dashboard</a>
-                <?php endif; ?>
-            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
