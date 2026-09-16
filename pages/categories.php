@@ -178,7 +178,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                             <td class="p-4">
                                 <div class="flex justify-center gap-2">
                                     <button type="button"
-                                        @click="openEdit(<?= $c['id'] ?>, '<?= addslashes(htmlspecialchars($c['name'])) ?>', '<?= addslashes(htmlspecialchars($c['keyword'])) ?>', '<?= $c['type'] ?>')"
+                                        @click="openEdit(<?= (int)$c['id'] ?>, <?= htmlspecialchars(json_encode($c['name']), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode($c['keyword']), ENT_QUOTES, 'UTF-8') ?>, <?= json_encode($c['type']) ?>)"
                                         class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition">
                                         <i class="ph ph-pencil-simple"></i> Edit
                                     </button>

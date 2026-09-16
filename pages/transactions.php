@@ -296,11 +296,11 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
     editMode: false,
     form: {
         id: null,
-        category_id: '<?= $editTransaction ? $editTransaction['category_id'] : '' ?>',
-        type: '<?= $editTransaction ? $editTransaction['type'] : 'PENGELUARAN' ?>',
-        amount: '<?= $editTransaction ? $editTransaction['amount'] : '' ?>',
-        transaction_date: '<?= $editTransaction ? $editTransaction['transaction_date'] : date('Y-m-d') ?>',
-        description: '<?= $editTransaction ? addslashes($editTransaction['description']) : '' ?>'
+        category_id: <?= json_encode((string)($editTransaction['category_id'] ?? '')) ?>,
+        type: <?= json_encode((string)($editTransaction['type'] ?? 'PENGELUARAN')) ?>,
+        amount: <?= json_encode((string)($editTransaction['amount'] ?? '')) ?>,
+        transaction_date: <?= json_encode((string)($editTransaction['transaction_date'] ?? date('Y-m-d'))) ?>,
+        description: <?= json_encode((string)($editTransaction['description'] ?? '')) ?>
     },
     openAdd() {
         this.editMode = false;
@@ -316,7 +316,9 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
             if (sel) sel.value = String(category_id);
         });
     }
-}" x-init="<?= $editTransaction ? "openEdit({$editTransaction['id']}, {$editTransaction['category_id']}, '{$editTransaction['type']}', {$editTransaction['amount']}, '{$editTransaction['transaction_date']}', '".addslashes($editTransaction['description'])."')" : '' ?>">
+}" <?php if ($editTransaction): ?>
+    x-init="openEdit(<?= (int)$editTransaction['id'] ?>, <?= (int)$editTransaction['category_id'] ?>, <?= json_encode($editTransaction['type']) ?>, <?= (float)$editTransaction['amount'] ?>, <?= json_encode($editTransaction['transaction_date']) ?>, <?= htmlspecialchars(json_encode($editTransaction['description']), ENT_QUOTES, 'UTF-8') ?>)"
+<?php endif; ?>>
     <div class="grid grid-cols-1 gap-6">
         <div class="glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
             <div class="p-4 lg:p-6 border-b border-gray-100 dark:border-slate-700/50 flex flex-wrap justify-between items-center gap-3">
@@ -390,7 +392,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                                 <td class="p-4">
                                     <div class="flex justify-center gap-2">
                                         <button type="button"
-                                            @click="openEdit(<?= $t['id'] ?>, <?= $t['category_id'] ?>, '<?= $t['type'] ?>', <?= $t['amount'] ?>, '<?= $t['transaction_date'] ?>', '<?= addslashes($t['description']) ?>')"
+                                            @click="openEdit(<?= (int)$t['id'] ?>, <?= (int)$t['category_id'] ?>, <?= json_encode($t['type']) ?>, <?= (float)$t['amount'] ?>, <?= json_encode($t['transaction_date']) ?>, <?= htmlspecialchars(json_encode($t['description']), ENT_QUOTES, 'UTF-8') ?>)"
                                             class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition">
                                             <i class="ph ph-pencil-simple"></i> Edit
                                         </button>
