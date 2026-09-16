@@ -5,6 +5,7 @@ require_once __DIR__ . '/auth.php';
 require_login();
 
 $user_id = current_user_id();
+PahamFin_seed_default_categories($pdo, $user_id);
 
 $userProfileStmt = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
 $userProfileStmt->execute([$user_id]);

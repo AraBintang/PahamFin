@@ -17,6 +17,9 @@ if ($secret !== '') {
 
 // Pastikan kolom tracking notifikasi ada di tabel reminders
 try {
+    $pdo->exec("ALTER TABLE reminders ADD COLUMN notified_h2 TINYINT(1) NOT NULL DEFAULT 0");
+} catch (Throwable $e) {}
+try {
     $pdo->exec("ALTER TABLE reminders ADD COLUMN notified_h1 TINYINT(1) NOT NULL DEFAULT 0");
 } catch (Throwable $e) {}
 try {
@@ -25,7 +28,30 @@ try {
 
 $today = date('Y-m-d');
 $tomorrow = date('Y-m-d', strtotime('+1 day'));
+$inTwoDays = date('Y-m-d', strtotime('+2 days'));
 $messagesToSend = [];
+
+// 0. Cek Pengingat H-2
+$stmt = $pdo->prepare("SELECT r.*, u.telegram_id, u.phone_number FROM reminders r JOIN users u ON r.user_id = u.id WHERE r.done = 0 AND r.notified_h2 = 0 AND r.remind_date = ?");
+$stmt->execute([$inTwoDays]);
+$h2 = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+foreach ($h2 as $r) {
+    // Masukkan ke notifikasi dashboard
+    $pdo->prepare("INSERT INTO notifications (user_id, type, message) VALUES (?, 'reminder', ?)")
+        ->execute([$r['user_id'], "Pengingat H-2: {$r['title']}"]);
+    
+    // Tandai sudah dinotif
+    $pdo->prepare("UPDATE reminders SET notified_h2 = 1 WHERE id = ?")
+        ->execute([$r['id']]);
+    
+    if ($r['telegram_id']) {
+        $messagesToSend[] = [
+            'telegram_id' => $r['telegram_id'], 
+            'message' => "🔔 *Pengingat H-2 (2 Hari Lagi)!*\n\n📝: {$r['title']}\n⏳ Jatuh Tempo: " . date('d M Y', strtotime($r['remind_date']))
+        ];
+    }
+}
 
 // 1. Cek Pengingat H-1 (Besok)
 $stmt = $pdo->prepare("SELECT r.*, u.telegram_id, u.phone_number FROM reminders r JOIN users u ON r.user_id = u.id WHERE r.done = 0 AND r.notified_h1 = 0 AND r.remind_date = ?");
@@ -44,7 +70,7 @@ foreach ($h1 as $r) {
     if ($r['telegram_id']) {
         $messagesToSend[] = [
             'telegram_id' => $r['telegram_id'], 
-            'message' => "🔔 *Pengingat Besok!*\n\n📝: {$r['title']}\n⏳ Jatuh Tempo: Besok"
+            'message' => "🔔 *Pengingat Besok!*\n\n📝: {$r['title']}\n⏳ Jatuh Tempo: Besok (" . date('d M Y', strtotime($r['remind_date'])) . ")"
         ];
     }
 }
