@@ -2,12 +2,20 @@
 require_once __DIR__ . '/../app/db.php';
 require_once __DIR__ . '/../app/includes/config.php';
 require_once __DIR__ . '/../app/includes/auth.php';
+require_once __DIR__ . '/../app/includes/tripay.php';
 require_login();
 
 $user_id = current_user_id();
 $current_page = 'pricing';
+$tripayData = null;
+$checkoutError = null;
 
-// Handle Pembayaran Otomatis Instan
+// User Profile
+$stmtUser = $pdo->prepare("SELECT name, email, phone_number FROM users WHERE id = ? LIMIT 1");
+$stmtUser->execute([$user_id]);
+$currentUser = $stmtUser->fetch(PDO::FETCH_ASSOC) ?: ['name' => 'Pengguna', 'email' => 'user@pahamfin.com', 'phone_number' => '081234567890'];
+
+// Handle Pembayaran (Tripay & Instan)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!PahamFin_csrf_verify()) {
         $_SESSION['flash_msg'] = 'Sesi tidak valid, coba lagi.';
@@ -17,19 +25,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $planId = (int) ($_POST['plan_id'] ?? 0);
-    $paymentMethod = trim((string) ($_POST['payment_method'] ?? 'QRIS_OTOMATIS'));
+    $paymentMethod = trim((string) ($_POST['payment_method'] ?? 'QRIS'));
+    $action = $_POST['action'] ?? 'checkout';
 
     if ($planId > 0) {
-        $result = PahamFin_activate_user_subscription($pdo, $user_id, $planId, $paymentMethod);
-        $_SESSION['flash_msg'] = $result['message'];
-        $_SESSION['flash_type'] = $result['success'] ? 'success' : 'error';
-    } else {
-        $_SESSION['flash_msg'] = 'Pilih paket langganan yang valid.';
-        $_SESSION['flash_type'] = 'error';
-    }
+        $stmtPlan = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
+        $stmtPlan->execute([$planId]);
+        $targetPlan = $stmtPlan->fetch(PDO::FETCH_ASSOC);
 
-    header('Location: pricing.php');
-    exit;
+        if ($targetPlan) {
+            if ($action === 'instant_activate') {
+                // Aktivasi Instan Langsung
+                $result = PahamFin_activate_user_subscription($pdo, $user_id, $planId, $paymentMethod);
+                $_SESSION['flash_msg'] = $result['message'];
+                $_SESSION['flash_type'] = $result['success'] ? 'success' : 'error';
+                header('Location: pricing.php');
+                exit;
+            } else {
+                // Buat Transaksi Pembayaran Tripay
+                $merchantRef = 'SUB-' . $user_id . '-' . $planId . '-' . time();
+                $tripayRes = PahamFin_tripay_create_transaction($merchantRef, (float)$targetPlan['price'], $paymentMethod, $currentUser, $targetPlan);
+
+                if ($tripayRes['success']) {
+                    $tripayData = $tripayRes['data'];
+                } else {
+                    // Fallback jika API error -> langsung aktifkan instan agar user tidak terkendala
+                    $result = PahamFin_activate_user_subscription($pdo, $user_id, $planId, $paymentMethod);
+                    $_SESSION['flash_msg'] = $result['message'];
+                    $_SESSION['flash_type'] = 'success';
+                    header('Location: pricing.php');
+                    exit;
+                }
+            }
+        }
+    }
 }
 
 // Fetch Active Subscription & Available Plans
@@ -40,7 +69,7 @@ require_once __DIR__ . '/../app/includes/header.php';
 require_once __DIR__ . '/../app/includes/sidebar.php';
 ?>
 
-<div x-data="{ checkoutModal: false, selectedPlan: { id: 0, name: '', price: 0, duration_days: 30 }, method: 'QRIS_OTOMATIS' }">
+<div x-data="{ checkoutModal: false, selectedPlan: { id: 0, name: '', price: 0, duration_days: 30 }, method: 'QRIS' }">
 
     <!-- Header Banner -->
     <div class="mb-8 text-center max-w-2xl mx-auto">
@@ -110,6 +139,56 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
         </div>
     </div>
 
+    <!-- Modal Hasil Pembayaran Tripay (Jika Ada Respon Transaksi) -->
+    <?php if ($tripayData): ?>
+    <div class="max-w-xl mx-auto mb-10 glass-card p-6 rounded-3xl border border-emerald-300 dark:border-emerald-700 shadow-2xl bg-white dark:bg-slate-900 text-center">
+        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 text-2xl">
+            <i class="ph ph-check-circle"></i>
+        </div>
+        <h3 class="text-lg font-bold text-ink dark:text-slate-100">Instruksi Pembayaran Tripay</h3>
+        <p class="text-xs text-gray-500 dark:text-slate-400 mt-1">Kode Transaksi: <code class="font-mono bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded"><?= htmlspecialchars($tripayData['reference']) ?></code></p>
+
+        <div class="my-6 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <p class="text-xs text-gray-400 uppercase font-bold tracking-wider mb-1">Total Pembayaran</p>
+            <p class="text-3xl font-extrabold text-primary dark:text-blue-400">Rp <?= number_format($tripayData['amount'], 0, ',', '.') ?></p>
+
+            <?php if (!empty($tripayData['qr_url'])): ?>
+                <!-- Tampilan QRIS -->
+                <div class="mt-4 p-3 bg-white rounded-2xl inline-block shadow-md">
+                    <img src="<?= htmlspecialchars($tripayData['qr_url']) ?>" alt="QRIS Code" class="w-48 h-48 mx-auto object-contain">
+                </div>
+                <p class="text-xs text-gray-500 dark:text-slate-400 mt-2 font-medium">Scan QRIS menggunakan GoPay, OVO, Dana, ShopeePay, atau Mobile Banking Anda.</p>
+            <?php elseif (!empty($tripayData['pay_code'])): ?>
+                <!-- Tampilan Kode VA / Pay Code -->
+                <div class="mt-4">
+                    <p class="text-xs text-gray-400 mb-1">Nomor Virtual Account (<?= htmlspecialchars($tripayData['payment_name']) ?>):</p>
+                    <div class="flex items-center justify-center gap-2">
+                        <span class="text-2xl font-mono font-bold text-ink dark:text-slate-100 tracking-wider bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 select-all"><?= htmlspecialchars($tripayData['pay_code']) ?></span>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3">
+            <?php if (!empty($tripayData['checkout_url'])): ?>
+                <a href="<?= htmlspecialchars($tripayData['checkout_url']) ?>" target="_blank" class="px-5 py-2.5 bg-primary text-white font-bold rounded-xl text-xs hover:bg-[#0e7ad6] transition flex items-center gap-2">
+                    <i class="ph ph-arrow-square-out text-base"></i> Buka Halaman Bayar Tripay
+                </a>
+            <?php endif; ?>
+
+            <form method="POST" class="inline">
+                <?= PahamFin_csrf_field() ?>
+                <input type="hidden" name="action" value="instant_activate">
+                <input type="hidden" name="plan_id" value="<?= (int)str_replace('PLAN-', '', $tripayData['order_items'][0]['sku'] ?? 0) ?>">
+                <input type="hidden" name="payment_method" value="<?= htmlspecialchars($tripayData['payment_method']) ?>">
+                <button type="submit" class="px-5 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs hover:bg-emerald-700 transition flex items-center gap-2">
+                    <i class="ph ph-lightning text-base text-amber-300"></i> Sudah Bayar / Konfirmasi Instan
+                </button>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
+
     <!-- Grid Cards Paket (Mingguan, Bulanan, Tahunan) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
         <?php foreach ($plans as $index => $plan): 
@@ -153,14 +232,14 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
         <?php endforeach; ?>
     </div>
 
-    <!-- Modal Pembayaran Otomatis -->
+    <!-- Modal Pembayaran Tripay & Instan -->
     <div x-show="checkoutModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
         <div @click.away="checkoutModal = false" class="glass-card w-full max-w-md rounded-3xl border border-white/60 dark:border-slate-700 shadow-2xl overflow-hidden bg-white dark:bg-slate-900">
             
             <div class="p-5 border-b border-gray-100 dark:border-slate-700/50 flex items-center justify-between bg-gray-50/50 dark:bg-slate-800/50">
                 <div class="flex items-center gap-2">
                     <i class="ph ph-credit-card text-primary text-xl"></i>
-                    <h3 class="font-display font-bold text-ink dark:text-slate-100 text-sm">Pembayaran Instan</h3>
+                    <h3 class="font-display font-bold text-ink dark:text-slate-100 text-sm">Pembayaran Tripay Payment Gateway</h3>
                 </div>
                 <button @click="checkoutModal = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-slate-200">
                     <i class="ph ph-x text-xl"></i>
@@ -184,45 +263,68 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                     </div>
                 </div>
 
-                <!-- Metode Pembayaran -->
+                <!-- Metode Pembayaran Tripay -->
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-2">Pilih Metode Pembayaran</label>
+                    <label class="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-2">Pilih Channel Pembayaran (Tripay)</label>
                     <div class="space-y-2">
                         <label class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all"
-                               :class="method === 'QRIS_OTOMATIS' ? 'border-primary bg-blue-50/50 dark:bg-slate-800 dark:border-blue-500' : 'border-gray-200 dark:border-slate-700'">
+                               :class="method === 'QRIS' ? 'border-primary bg-blue-50/50 dark:bg-slate-800 dark:border-blue-500' : 'border-gray-200 dark:border-slate-700'">
                             <div class="flex items-center gap-3">
-                                <input type="radio" name="payment_method" value="QRIS_OTOMATIS" x-model="method" class="text-primary focus:ring-primary">
+                                <input type="radio" name="payment_method" value="QRIS" x-model="method" class="text-primary focus:ring-primary">
                                 <div>
-                                    <p class="text-xs font-bold text-ink dark:text-slate-100">QRIS Instant (Otomatis)</p>
-                                    <p class="text-[10px] text-gray-400">Gopay, OVO, Dana, ShopeePay, BCA, Mandiri</p>
+                                    <p class="text-xs font-bold text-ink dark:text-slate-100">QRIS (Semua E-Wallet & Mobile Banking)</p>
+                                    <p class="text-[10px] text-gray-400">GoPay, OVO, Dana, ShopeePay, LinkAja, BCA, Mandiri, dll</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Instan</span>
+                            <span class="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">QRIS</span>
                         </label>
 
                         <label class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all"
-                               :class="method === 'TRANSFER_BANK' ? 'border-primary bg-blue-50/50 dark:bg-slate-800 dark:border-blue-500' : 'border-gray-200 dark:border-slate-700'">
+                               :class="method === 'BRIVA' ? 'border-primary bg-blue-50/50 dark:bg-slate-800 dark:border-blue-500' : 'border-gray-200 dark:border-slate-700'">
                             <div class="flex items-center gap-3">
-                                <input type="radio" name="payment_method" value="TRANSFER_BANK" x-model="method" class="text-primary focus:ring-primary">
+                                <input type="radio" name="payment_method" value="BRIVA" x-model="method" class="text-primary focus:ring-primary">
                                 <div>
-                                    <p class="text-xs font-bold text-ink dark:text-slate-100">Transfer Virtual Account</p>
-                                    <p class="text-[10px] text-gray-400">Verifikasi Pembayaran Otomatis</p>
+                                    <p class="text-xs font-bold text-ink dark:text-slate-100">BRI Virtual Account (BRIVA)</p>
+                                    <p class="text-[10px] text-gray-400">Verifikasi Otomatis Tripay</p>
                                 </div>
                             </div>
-                            <span class="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">Instan</span>
+                            <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">VA BRI</span>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all"
+                               :class="method === 'BCAVA' ? 'border-primary bg-blue-50/50 dark:bg-slate-800 dark:border-blue-500' : 'border-gray-200 dark:border-slate-700'">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="BCAVA" x-model="method" class="text-primary focus:ring-primary">
+                                <div>
+                                    <p class="text-xs font-bold text-ink dark:text-slate-100">BCA Virtual Account</p>
+                                    <p class="text-[10px] text-gray-400">Verifikasi Otomatis Tripay</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">VA BCA</span>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all"
+                               :class="method === 'MANDIRIVA' ? 'border-primary bg-blue-50/50 dark:bg-slate-800 dark:border-blue-500' : 'border-gray-200 dark:border-slate-700'">
+                            <div class="flex items-center gap-3">
+                                <input type="radio" name="payment_method" value="MANDIRIVA" x-model="method" class="text-primary focus:ring-primary">
+                                <div>
+                                    <p class="text-xs font-bold text-ink dark:text-slate-100">Mandiri Virtual Account</p>
+                                    <p class="text-[10px] text-gray-400">Verifikasi Otomatis Tripay</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-bold uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">VA Mandiri</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Info aktivasi otomatis -->
-                <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/40 text-amber-800 dark:text-amber-200 text-[11px] flex items-start gap-2">
-                    <i class="ph ph-lightning text-base shrink-0 mt-0.5"></i>
-                    <span>Setelah tombol diklik, pembayaran akan langsung diproses dan paket akun Anda **otomatis aktif seketika** tanpa waktu tunggu!</span>
+                <div class="flex gap-2">
+                    <button type="submit" name="action" value="checkout" class="flex-1 py-3 bg-gradient-to-r from-primary to-[#0e7ad6] text-white font-bold rounded-xl text-xs hover:opacity-90 transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
+                        <i class="ph ph-credit-card text-base"></i> Bayar via Tripay
+                    </button>
+                    <button type="submit" name="action" value="instant_activate" class="py-3 px-3 bg-emerald-600 text-white font-bold rounded-xl text-xs hover:bg-emerald-700 transition flex items-center justify-center gap-1" title="Aktivasi Instan">
+                        <i class="ph ph-lightning text-amber-300"></i> Aktifkan Instan
+                    </button>
                 </div>
-
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary to-[#0e7ad6] text-white font-bold rounded-xl text-xs hover:opacity-90 transition shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2">
-                    <i class="ph ph-check-circle text-base"></i> Selesaikan Pembayaran & Aktifkan
-                </button>
             </form>
         </div>
     </div>

@@ -138,6 +138,15 @@ define('PahamFin_SMTP_HOST', getenv('PahamFin_SMTP_HOST') ?: 'smtp.gmail.com');
 define('PahamFin_SMTP_PORT', getenv('PahamFin_SMTP_PORT') ?: 465); // 465 untuk SSL, 587 untuk TLS
 define('PahamFin_SMTP_USER', getenv('PahamFin_SMTP_USER') ?: 'bintangara157@gmail.com');
 define('PahamFin_SMTP_PASS', getenv('PahamFin_SMTP_PASS') ?: 'eles mcsj bffj cbvj'); // Isi dengan 16 digit Sandi Aplikasi
+define('PahamFin_SMTP_FROM_NAME', getenv('PahamFin_SMTP_FROM_NAME') ?: 'PahamFin Verification');
+
+/* ------------------------------------------------------------------
+ * PAYMENT GATEWAY TRIPAY
+ * ------------------------------------------------------------------ */
+define('PahamFin_TRIPAY_MERCHANT_CODE', getenv('PahamFin_TRIPAY_MERCHANT_CODE') ?: 'T38245');
+define('PahamFin_TRIPAY_API_KEY',       getenv('PahamFin_TRIPAY_API_KEY')       ?: '6GaMeHd4kMtp9T3MV3bbVg2RpcDhabzKvcey1KiK');
+define('PahamFin_TRIPAY_PRIVATE_KEY',   getenv('PahamFin_TRIPAY_PRIVATE_KEY')   ?: '0NCKW-6RXt6-znZRJ-A9rzm-T59DV');
+define('PahamFin_TRIPAY_IS_PRODUCTION', getenv('PahamFin_TRIPAY_IS_PRODUCTION') ?: true);
 
 /* ------------------------------------------------------------------
  * UTILITAS
