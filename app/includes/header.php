@@ -29,6 +29,7 @@ function get_page_title($page, $isAdmin, $adminPage) {
     if ($adminPage) {
         switch ($page) {
             case 'index': return 'Dashboard Admin';
+            case 'plans': return 'Kelola Paket Langganan';
             case 'users': return 'Manajemen Pengguna';
             case 'transactions': return 'Semua Transaksi (Admin)';
             case 'categories': return 'Kategori (Admin)';
@@ -43,6 +44,7 @@ function get_page_title($page, $isAdmin, $adminPage) {
     }
     switch($page) {
         case 'index': return 'Dashboard';
+        case 'pricing': return 'Paket Langganan & Fitur';
         case 'transactions': return 'Semua Transaksi';
         case 'categories': return 'Kategori & Bot';
         case 'budgets': return 'Anggaran Bulanan';

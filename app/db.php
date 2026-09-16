@@ -185,6 +185,34 @@ function PahamFin_schema(PDO $pdo, string $driver): void
         )
     ");
 
+    // Tabel Paket Langganan & Pembayaran.
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS subscription_plans (
+            id $autoIncrement,
+            name VARCHAR(100) NOT NULL,
+            price DECIMAL(15,2) NOT NULL DEFAULT 0,
+            duration_days INT NOT NULL DEFAULT 30,
+            description TEXT,
+            features TEXT,
+            is_active TINYINT NOT NULL DEFAULT 1,
+            created_at $timestamp
+        )
+    ");
+
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS user_subscriptions (
+            id $autoIncrement,
+            user_id INT NOT NULL,
+            plan_id INT NOT NULL,
+            amount DECIMAL(15,2) NOT NULL DEFAULT 0,
+            status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+            payment_method VARCHAR(50) NOT NULL DEFAULT 'INSTANT',
+            starts_at DATETIME NOT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at $timestamp
+        )
+    ");
+
     // Indeks (guard untuk MySQL <= 5.7 yang tidak mendukung ADD ... IF NOT EXISTS)
     $indexes = [
         "CREATE INDEX IF NOT EXISTS idx_categories_user ON categories (user_id)",
@@ -200,6 +228,7 @@ function PahamFin_schema(PDO $pdo, string $driver): void
         "CREATE INDEX IF NOT EXISTS idx_savings_user ON savings_goals (user_id)",
         "CREATE INDEX IF NOT EXISTS idx_reminders_user ON reminders (user_id)",
         "CREATE INDEX IF NOT EXISTS idx_debts_user ON debts (user_id)",
+        "CREATE INDEX IF NOT EXISTS idx_user_sub_user ON user_subscriptions (user_id)",
     ];
     foreach ($indexes as $sql) {
         try {
@@ -570,6 +599,95 @@ function PahamFin_seed_default_categories(PDO $pdo, int $userId): void
             $updateStmt->execute([$cat[1], $userId, $cat[0]]);
         }
     }
+}
+
+// ---- Helper & Seed Paket Langganan ----
+function PahamFin_seed_default_subscription_plans(PDO $pdo): void
+{
+    try {
+        $count = (int) ($pdo->query("SELECT COUNT(*) FROM subscription_plans")->fetchColumn() ?? 0);
+        if ($count === 0) {
+            $stmt = $pdo->prepare("INSERT INTO subscription_plans (name, price, duration_days, description, features, is_active) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                'Paket Pro',
+                17000,
+                30,
+                'Akses lengkap ke semua fitur PahamFin selama 30 hari.',
+                "Catat Transaksi via Bot Telegram\nScan Struk Otomatis dengan AI\nFitur Tabungan & Target Keuangan\nFitur Manajemen Hutang & Piutang\nExport & Cetak Laporan PDF",
+                1
+            ]);
+            $stmt->execute([
+                'Paket Sultan 3 Bulan',
+                45000,
+                90,
+                'Paket langganan 3 bulan hemat 15% dengan prioritas server.',
+                "Semua Fitur Paket Pro\nBerlaku 90 Hari (Hemat Rp 6.000)\nPrioritas AI Scan Struk Lebih Cepat\nSupport VIP 24/7",
+                1
+            ]);
+        }
+    } catch (Throwable $e) {}
+}
+
+function PahamFin_get_subscription_plans(PDO $pdo, bool $onlyActive = true): array
+{
+    PahamFin_seed_default_subscription_plans($pdo);
+    $sql = "SELECT * FROM subscription_plans " . ($onlyActive ? "WHERE is_active = 1 " : "") . "ORDER BY price ASC, id ASC";
+    return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function PahamFin_get_user_active_subscription(PDO $pdo, int $userId): ?array
+{
+    $now = date('Y-m-d H:i:s');
+    $stmt = $pdo->prepare("
+        SELECT s.*, p.name as plan_name, p.features, p.price as plan_price
+        FROM user_subscriptions s
+        JOIN subscription_plans p ON s.plan_id = p.id
+        WHERE s.user_id = ? AND s.status = 'ACTIVE' AND s.expires_at >= ?
+        ORDER BY s.expires_at DESC LIMIT 1
+    ");
+    $stmt->execute([$userId, $now]);
+    $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $sub ?: null;
+}
+
+function PahamFin_activate_user_subscription(PDO $pdo, int $userId, int $planId, string $paymentMethod = 'INSTANT'): array
+{
+    $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
+    $stmt->execute([$planId]);
+    $plan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$plan) {
+        return ['success' => false, 'message' => 'Paket langganan tidak ditemukan.'];
+    }
+
+    $days = max(1, (int) $plan['duration_days']);
+    $price = (float) $plan['price'];
+
+    // Cek apakah user sudah punya langganan aktif, jika ada perpanjang dari tanggal expires_at
+    $activeSub = PahamFin_get_user_active_subscription($pdo, $userId);
+    $startsAt = date('Y-m-d H:i:s');
+    
+    if ($activeSub && strtotime($activeSub['expires_at']) > time()) {
+        $expiresAt = date('Y-m-d H:i:s', strtotime($activeSub['expires_at'] . " +{$days} days"));
+    } else {
+        $expiresAt = date('Y-m-d H:i:s', strtotime("+{$days} days"));
+    }
+
+    // Set status lama ke EXPIRED jika ada
+    $upd = $pdo->prepare("UPDATE user_subscriptions SET status = 'EXPIRED' WHERE user_id = ? AND status = 'ACTIVE'");
+    $upd->execute([$userId]);
+
+    $ins = $pdo->prepare("
+        INSERT INTO user_subscriptions (user_id, plan_id, amount, status, payment_method, starts_at, expires_at)
+        VALUES (?, ?, ?, 'ACTIVE', ?, ?, ?)
+    ");
+    $ins->execute([$userId, $planId, $price, $paymentMethod, $startsAt, $expiresAt]);
+
+    return [
+        'success' => true,
+        'message' => 'Pembayaran berhasil! Paket ' . htmlspecialchars($plan['name']) . ' otomatis aktif hingga ' . date('d M Y', strtotime($expiresAt)) . '.',
+        'expires_at' => $expiresAt
+    ];
 }
 
 $user_id = null;

@@ -32,6 +32,7 @@
                 <?php
                 $admin_items = [
                     ['href' => PahamFin_URL_PAGES . '/admin/index.php',       'page' => 'index',        'icon' => 'ph-gauge',             'label' => 'Dashboard Admin'],
+                    ['href' => PahamFin_URL_PAGES . '/admin/plans.php',       'page' => 'plans',        'icon' => 'ph-crown',             'label' => 'Paket Langganan'],
                     ['href' => PahamFin_URL_PAGES . '/admin/users.php',       'page' => 'users',        'icon' => 'ph-users-three',       'label' => 'Pengguna'],
                     ['href' => PahamFin_URL_PAGES . '/admin/settings.php',    'page' => 'settings',     'icon' => 'ph-shield-check',      'label' => 'Pengaturan Admin'],
                 ];
@@ -93,6 +94,7 @@
                 <p x-show="!collapsed" class="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-200/50">Lainnya</p>
                 <?php
                 $group_lainnya = [
+                    'pricing'  => ['icon' => 'ph-crown',                    'label' => 'Langganan'],
                     'guide'    => ['icon' => 'ph-book-open-text',           'label' => 'Panduan'],
                     'settings' => ['icon' => 'ph-gear',                     'label' => 'Pengaturan'],
                 ];
