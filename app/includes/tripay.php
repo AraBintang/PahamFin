@@ -31,6 +31,7 @@ function PahamFin_tripay_get_channels(): array
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, PahamFin_tripay_headers());
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     $res = curl_exec($ch);
     $err = curl_error($ch);
     curl_close($ch);
@@ -83,6 +84,7 @@ function PahamFin_tripay_create_transaction(string $merchantRef, float $amount, 
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
     curl_setopt($ch, CURLOPT_HTTPHEADER, PahamFin_tripay_headers());
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
     $res = curl_exec($ch);
     $err = curl_error($ch);
     curl_close($ch);
