@@ -52,6 +52,7 @@ function require_subscription(PDO $pdo): void
         if (!in_array($currentPage, ['payment.php', 'pricing.php', 'logout.php'], true)) {
             header('Location: ' . PahamFin_URL_PAGES . '/payment.php');
             exit;
+        }
     }
 }
 
@@ -63,5 +64,3 @@ function require_admin(PDO $pdo): void
         exit;
     }
 }
-
-
