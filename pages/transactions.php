@@ -4,6 +4,10 @@ require_once __DIR__ . '/../app/includes/config.php';
 require_once __DIR__ . '/../app/includes/auth.php';
 require_login();
 $user_id = current_user_id();
+$isAdmin = current_user_is_admin($pdo);
+
+// Pastikan kategori bawaan selalu di-seed untuk user/admin yang sedang aktif
+PahamFin_seed_default_categories($pdo, $user_id);
 
 /* ==================== DELETE ==================== */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
@@ -12,11 +16,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delet
         exit;
     }
     $id = (int) ($_POST['id'] ?? 0);
-    $stmt = $pdo->prepare("DELETE FROM transactions WHERE id = ? AND user_id = ?");
-    $stmt->execute([$id, $user_id]);
-    if ($stmt->rowCount() === 0) {
-        $stmt = $pdo->prepare("DELETE FROM transaction_archive WHERE id = ? AND user_id = ?");
+    if ($isAdmin) {
+        $stmt = $pdo->prepare("DELETE FROM transactions WHERE id = ?");
+        $stmt->execute([$id]);
+        if ($stmt->rowCount() === 0) {
+            $stmt = $pdo->prepare("DELETE FROM transaction_archive WHERE id = ?");
+            $stmt->execute([$id]);
+        }
+    } else {
+        $stmt = $pdo->prepare("DELETE FROM transactions WHERE id = ? AND user_id = ?");
         $stmt->execute([$id, $user_id]);
+        if ($stmt->rowCount() === 0) {
+            $stmt = $pdo->prepare("DELETE FROM transaction_archive WHERE id = ? AND user_id = ?");
+            $stmt->execute([$id, $user_id]);
+        }
     }
     header('Location: transactions.php?success=deleted');
     exit;
@@ -39,32 +52,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
         $date = date('Y-m-d');
     }
 
+    $targetUserId = $user_id;
+    if ($isAdmin && !empty($_POST['target_user_id'])) {
+        $targetUserId = (int) $_POST['target_user_id'];
+        PahamFin_seed_default_categories($pdo, $targetUserId);
+    }
+
     if ($categoryId > 0 && $amount > 0 && $amount <= 9999999999) {
-        $catStmt = $pdo->prepare("SELECT type FROM categories WHERE id = ? AND user_id = ? LIMIT 1");
-        $catStmt->execute([$categoryId, $user_id]);
+        $catStmt = $pdo->prepare("SELECT type FROM categories WHERE id = ? LIMIT 1");
+        $catStmt->execute([$categoryId]);
         $categoryType = $catStmt->fetchColumn();
         $finalType = $categoryType ?: $type;
         $finalDesc = $description !== '' ? $description : 'Transaksi';
 
         if ($_POST['action'] === 'edit' && $id > 0) {
-            $stmt = $pdo->prepare("UPDATE transactions SET category_id = ?, amount = ?, description = ?, type = ?, transaction_date = ? WHERE id = ? AND user_id = ?");
-            $stmt->execute([$categoryId, $amount, $finalDesc, $finalType, $date, $id, $user_id]);
-            if ($stmt->rowCount() === 0) {
-                $stmt = $pdo->prepare("UPDATE transaction_archive SET category_id = ?, amount = ?, description = ?, type = ?, transaction_date = ? WHERE id = ? AND user_id = ?");
-                $stmt->execute([$categoryId, $amount, $finalDesc, $finalType, $date, $id, $user_id]);
-            }
+            $stmt = $pdo->prepare("UPDATE transactions SET category_id = ?, amount = ?, description = ?, type = ?, transaction_date = ? WHERE id = ?");
+            $stmt->execute([$categoryId, $amount, $finalDesc, $finalType, $date, $id]);
             header('Location: transactions.php?success=updated');
             exit;
         } else {
             $stmt = $pdo->prepare("INSERT INTO transactions (user_id, category_id, amount, description, type, transaction_date) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$user_id, $categoryId, $amount, $finalDesc, $finalType, $date]);
+            $stmt->execute([$targetUserId, $categoryId, $amount, $finalDesc, $finalType, $date]);
             if ($finalType === 'PEMASUKAN') {
-                PahamFin_notify($pdo, $user_id, 'income', 'Uang masuk: ' . $finalDesc . ' sebesar Rp ' . number_format($amount, 0, ',', '.'), (float) $amount);
-            }
-            try {
-                PahamFin_check_budget_alerts($pdo, $user_id, $categoryId);
-            } catch (Throwable $e) {
-                // Notifikasi anggaran opsional.
+                PahamFin_notify($pdo, $targetUserId, 'income', 'Uang masuk: ' . $finalDesc . ' sebesar Rp ' . number_format($amount, 0, ',', '.'), (float) $amount);
             }
             header('Location: transactions.php?success=added');
             exit;
@@ -75,22 +85,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
     }
 }
 
-
-
-
-
 /* ==================== DATA ==================== */
 $editId = isset($_GET['edit_id']) ? (int) $_GET['edit_id'] : 0;
 $editTransaction = null;
 if ($editId > 0) {
-    $editStmt = $pdo->prepare("SELECT * FROM transactions WHERE id = ? AND user_id = ? LIMIT 1");
-    $editStmt->execute([$editId, $user_id]);
+    $editStmt = $pdo->prepare("SELECT * FROM transactions WHERE id = ? LIMIT 1");
+    $editStmt->execute([$editId]);
     $editTransaction = $editStmt->fetch(PDO::FETCH_ASSOC);
-    if (!$editTransaction) {
-        $editStmt = $pdo->prepare("SELECT * FROM transaction_archive WHERE id = ? AND user_id = ? LIMIT 1");
-        $editStmt->execute([$editId, $user_id]);
-        $editTransaction = $editStmt->fetch(PDO::FETCH_ASSOC);
-    }
 }
 
 $filters = [
@@ -101,9 +102,17 @@ $filters = [
     'search' => trim((string) ($_GET['search'] ?? '')),
 ];
 
+$allUsers = $isAdmin ? $pdo->query("SELECT id, name, email FROM users ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC) : [];
+
 $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? ORDER BY type, name");
 $catStmt->execute([$user_id]);
 $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+if (count($categories) === 0) {
+    // Fallback jika belum ada kategori spesifik user
+    $catStmt = $pdo->query("SELECT * FROM categories GROUP BY name ORDER BY type, name");
+    $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 /* --- Query dengan filter + pencarian + pagination --- */
 $where = ["t.user_id = ?"];
@@ -482,6 +491,17 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                 <?= PahamFin_csrf_field() ?>
                 <input type="hidden" name="action" :value="editMode ? 'edit' : 'add'">
                 <input type="hidden" name="id" :value="form.id">
+
+                <?php if ($isAdmin): ?>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Milik Pengguna (Admin)</label>
+                    <select name="target_user_id" class="w-full border border-gray-300 dark:border-slate-600 dark:bg-slate-900/50 dark:text-slate-100 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
+                        <?php foreach ($allUsers as $u): ?>
+                            <option value="<?= $u['id'] ?>" <?= $u['id'] == $user_id ? 'selected' : '' ?>><?= htmlspecialchars($u['name']) ?> (<?= htmlspecialchars($u['email']) ?>)</option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Kategori</label>
