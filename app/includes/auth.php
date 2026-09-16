@@ -32,6 +32,29 @@ function current_user_is_admin(PDO $pdo): bool
     return $user !== null && PahamFin_is_admin($user);
 }
 
+function require_subscription(PDO $pdo): void
+{
+    require_login();
+    $userId = current_user_id();
+    if (!$userId) return;
+
+    $user = current_user($pdo);
+    if (!$user) return;
+
+    // Admin selalu diizinkan masuk dashboard tanpa perlu langganan
+    if (PahamFin_is_admin($user)) {
+        return;
+    }
+
+    $activeSub = PahamFin_get_user_active_subscription($pdo, $userId);
+    if (!$activeSub) {
+        $currentPage = basename($_SERVER['PHP_SELF']);
+        if (!in_array($currentPage, ['payment.php', 'pricing.php', 'logout.php'], true)) {
+            header('Location: ' . PahamFin_URL_PAGES . '/payment.php');
+            exit;
+    }
+}
+
 function require_admin(PDO $pdo): void
 {
     require_login();
@@ -40,3 +63,5 @@ function require_admin(PDO $pdo): void
         exit;
     }
 }
+
+

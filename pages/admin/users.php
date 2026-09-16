@@ -195,19 +195,19 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
                             <?php if (!$isSelf): ?>
                                 <?php if ($isAdminRole): ?>
                                     <button type="button" 
-                                        @click="openConfirm('demote', <?= (int)$u['id'] ?>, 'Cabut Status Admin?', 'Cabut hak akses admin dari <?= $escapedName ?>?', 'Ya, Cabut Admin', 'bg-slate-700 hover:bg-slate-800 text-white', 'ph-user-minus text-slate-600 dark:text-slate-300', 'bg-slate-100 dark:bg-slate-700')"
+                                        @click="openConfirm('demote', <?= (int)$u['id'] ?>, 'Cabut Status Admin?', <?= htmlspecialchars(json_encode('Cabut hak akses admin dari ' . $u['name'] . '?'), ENT_QUOTES, 'UTF-8') ?>, 'Ya, Cabut Admin', 'bg-slate-700 hover:bg-slate-800 text-white', 'ph-user-minus text-slate-600 dark:text-slate-300', 'bg-slate-100 dark:bg-slate-700')"
                                         class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:bg-slate-700/50 transition">
                                         <i class="ph ph-user-minus"></i> User-kan
                                     </button>
                                 <?php else: ?>
                                     <button type="button"
-                                        @click="openConfirm('promote', <?= (int)$u['id'] ?>, 'Jadikan Admin?', 'Jadikan <?= $escapedName ?> sebagai admin dengan akses penuh ke Panel Admin PahamFin?', 'Ya, Jadikan Admin', 'bg-amber-600 hover:bg-amber-700 text-white', 'ph-shield-plus text-amber-600 dark:text-amber-400', 'bg-amber-100 dark:bg-amber-900/40')"
+                                        @click="openConfirm('promote', <?= (int)$u['id'] ?>, 'Jadikan Admin?', <?= htmlspecialchars(json_encode('Jadikan ' . $u['name'] . ' sebagai admin dengan akses penuh ke Panel Admin PahamFin?'), ENT_QUOTES, 'UTF-8') ?>, 'Ya, Jadikan Admin', 'bg-amber-600 hover:bg-amber-700 text-white', 'ph-shield-plus text-amber-600 dark:text-amber-400', 'bg-amber-100 dark:bg-amber-900/40')"
                                         class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100 dark:bg-amber-900/50 transition">
                                         <i class="ph ph-shield-plus"></i> Jadikan Admin
                                     </button>
                                 <?php endif; ?>
                                 <button type="button"
-                                    @click="openConfirm('delete', <?= (int)$u['id'] ?>, 'Hapus <?= $escapedName ?>?', 'Hapus <?= $escapedName ?> beserta semua data transaksinya? Aksi ini tidak dapat dibatalkan.', 'Ya, Hapus Pengguna', 'bg-rose-600 hover:bg-rose-700 text-white', 'ph-trash text-rose-600 dark:text-rose-400', 'bg-rose-100 dark:bg-rose-900/40')"
+                                    @click="openConfirm('delete', <?= (int)$u['id'] ?>, <?= htmlspecialchars(json_encode('Hapus ' . $u['name'] . '?'), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode('Hapus ' . $u['name'] . ' beserta semua data transaksinya? Aksi ini tidak dapat dibatalkan.'), ENT_QUOTES, 'UTF-8') ?>, 'Ya, Hapus Pengguna', 'bg-rose-600 hover:bg-rose-700 text-white', 'ph-trash text-rose-600 dark:text-rose-400', 'bg-rose-100 dark:bg-rose-900/40')"
                                     class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 dark:border-rose-800/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:bg-rose-900/30 transition">
                                     <i class="ph ph-trash"></i> Hapus
                                 </button>

@@ -3,6 +3,7 @@ require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
 require_login();
+require_subscription($pdo);
 
 $user_id = current_user_id();
 PahamFin_seed_default_categories($pdo, $user_id);

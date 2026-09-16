@@ -94,7 +94,6 @@
                 <p x-show="!collapsed" class="px-3 pt-3 pb-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-200/50">Lainnya</p>
                 <?php
                 $group_lainnya = [
-                    'pricing'  => ['icon' => 'ph-crown',                    'label' => 'Langganan'],
                     'guide'    => ['icon' => 'ph-book-open-text',           'label' => 'Panduan'],
                     'settings' => ['icon' => 'ph-gear',                     'label' => 'Pengaturan'],
                 ];
