@@ -150,24 +150,6 @@ require_once __DIR__ . '/../../app/includes/sidebar.php';
                     <span class="text-2xl font-extrabold text-primary dark:text-blue-400">Rp <?= number_format($plan['price'], 0, ',', '.') ?></span>
                     <span class="text-xs text-gray-400 font-normal">/ <?= (int)$plan['duration_days'] ?> hari</span>
                 </div>
-
-                <div class="border-t border-gray-100 dark:border-slate-700/50 pt-3 mt-3">
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">Fitur yang didapat:</p>
-                    <ul class="space-y-1.5 text-xs text-gray-600 dark:text-slate-300">
-                        <?php 
-                        $featuresList = array_filter(array_map('trim', explode("\n", (string)$plan['features'])));
-                        foreach ($featuresList as $feat):
-                        ?>
-                            <li class="flex items-start gap-2">
-                                <i class="ph ph-check-circle text-emerald-500 text-sm mt-0.5 shrink-0"></i>
-                                <span><?= htmlspecialchars($feat) ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                        <?php if (empty($featuresList)): ?>
-                            <li class="text-gray-400 italic">Belum ada fitur yang dicantumkan.</li>
-                        <?php endif; ?>
-                    </ul>
-                </div>
             </div>
 
             <div class="p-3 bg-gray-50/70 dark:bg-slate-800/60 border-t border-gray-100 dark:border-slate-700/50 flex items-center justify-between gap-2">
@@ -333,12 +315,7 @@ require_once __DIR__ . '/../../app/includes/sidebar.php';
 
                 <div>
                     <label class="block font-semibold text-gray-700 dark:text-slate-300 mb-1">Keterangan Ringkas (Opsional)</label>
-                    <input type="text" name="description" x-model="editData.description" class="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary" placeholder="Akses lengkap fitur PahamFin">
-                </div>
-
-                <div>
-                    <label class="block font-semibold text-gray-700 dark:text-slate-300 mb-1">Daftar Fitur (Satu fitur per baris)</label>
-                    <textarea name="features" x-model="editData.features" rows="4" class="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-primary focus:border-primary" placeholder="Catat Transaksi via Bot Telegram&#10;Scan Struk Otomatis dengan AI&#10;Tabungan & Target Keuangan"></textarea>
+                    <input type="text" name="description" x-model="editData.description" class="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-primary focus:border-primary" placeholder="Akses penuh selama durasi langganan">
                 </div>
 
                 <div class="flex items-center gap-2 pt-2">

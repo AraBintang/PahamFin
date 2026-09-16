@@ -606,24 +606,19 @@ function PahamFin_seed_default_subscription_plans(PDO $pdo): void
 {
     try {
         $count = (int) ($pdo->query("SELECT COUNT(*) FROM subscription_plans")->fetchColumn() ?? 0);
-        if ($count === 0) {
-            $stmt = $pdo->prepare("INSERT INTO subscription_plans (name, price, duration_days, description, features, is_active) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([
-                'Paket Pro',
-                17000,
-                30,
-                'Akses lengkap ke semua fitur PahamFin selama 30 hari.',
-                "Catat Transaksi via Bot Telegram\nScan Struk Otomatis dengan AI\nFitur Tabungan & Target Keuangan\nFitur Manajemen Hutang & Piutang\nExport & Cetak Laporan PDF",
-                1
-            ]);
-            $stmt->execute([
-                'Paket Sultan 3 Bulan',
-                45000,
-                90,
-                'Paket langganan 3 bulan hemat 15% dengan prioritas server.',
-                "Semua Fitur Paket Pro\nBerlaku 90 Hari (Hemat Rp 6.000)\nPrioritas AI Scan Struk Lebih Cepat\nSupport VIP 24/7",
-                1
-            ]);
+        $hasOld = (int) ($pdo->query("SELECT COUNT(*) FROM subscription_plans WHERE name IN ('Paket Pro', 'Paket Sultan 3 Bulan')")->fetchColumn() ?? 0);
+        
+        if ($count === 0 || $hasOld > 0) {
+            if ($hasOld > 0) {
+                $pdo->exec("DELETE FROM subscription_plans WHERE name IN ('Paket Pro', 'Paket Sultan 3 Bulan')");
+            }
+            $currentCount = (int) ($pdo->query("SELECT COUNT(*) FROM subscription_plans")->fetchColumn() ?? 0);
+            if ($currentCount === 0) {
+                $stmt = $pdo->prepare("INSERT INTO subscription_plans (name, price, duration_days, description, features, is_active) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->execute(['Paket Mingguan', 5000, 7, 'Akses penuh selama 7 hari', '', 1]);
+                $stmt->execute(['Paket Bulanan', 17000, 30, 'Akses penuh selama 30 hari', '', 1]);
+                $stmt->execute(['Paket Tahunan', 150000, 365, 'Akses penuh selama 1 tahun (Hemat 25%)', '', 1]);
+            }
         }
     } catch (Throwable $e) {}
 }

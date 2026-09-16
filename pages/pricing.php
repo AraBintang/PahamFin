@@ -81,53 +81,64 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
     </div>
     <?php endif; ?>
 
-    <!-- Grid Cards Paket -->
+    <!-- Banner Fitur Lengkap PahamFin -->
+    <div class="max-w-4xl mx-auto mb-10 glass-card p-6 rounded-3xl border border-white/60 dark:border-slate-700/50 shadow-md">
+        <h3 class="text-center text-sm font-bold uppercase tracking-wider text-primary dark:text-blue-400 mb-4 flex items-center justify-center gap-2">
+            <i class="ph ph-sparkle text-amber-500 text-lg"></i> SEMUA PAKET MENDAPATKAN AKSES PENUH SELURUH FITUR PAHAMFIN
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-center text-xs">
+            <div class="p-3 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700/50">
+                <i class="ph ph-telegram-logo text-2xl text-sky-500 mb-1 block mx-auto"></i>
+                <span class="font-semibold text-ink dark:text-slate-200">Bot Telegram 24/7</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700/50">
+                <i class="ph ph-camera text-2xl text-emerald-500 mb-1 block mx-auto"></i>
+                <span class="font-semibold text-ink dark:text-slate-200">Scan Struk AI</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700/50">
+                <i class="ph ph-piggy-bank text-2xl text-amber-500 mb-1 block mx-auto"></i>
+                <span class="font-semibold text-ink dark:text-slate-200">Tabungan & Target</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700/50">
+                <i class="ph ph-handshake text-2xl text-purple-500 mb-1 block mx-auto"></i>
+                <span class="font-semibold text-ink dark:text-slate-200">Hutang & Piutang</span>
+            </div>
+            <div class="p-3 rounded-2xl bg-blue-50/50 dark:bg-slate-800/60 border border-blue-100 dark:border-slate-700/50 col-span-2 md:col-span-1">
+                <i class="ph ph-file-pdf text-2xl text-rose-500 mb-1 block mx-auto"></i>
+                <span class="font-semibold text-ink dark:text-slate-200">Cetak Laporan PDF</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid Cards Paket (Mingguan, Bulanan, Tahunan) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12">
         <?php foreach ($plans as $index => $plan): 
-            $isBestSeller = ($index === 0 || stripos($plan['name'], 'Pro') !== false);
+            $isBestSeller = (stripos($plan['name'], 'Bulan') !== false || (int)$plan['duration_days'] === 30);
             $isCurrentActive = ($activeSub && (int)$activeSub['plan_id'] === (int)$plan['id']);
         ?>
         <div class="glass-card rounded-3xl border border-white/60 dark:border-slate-700/50 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between relative <?= $isBestSeller ? 'ring-2 ring-primary dark:ring-blue-500 scale-[1.02]' : '' ?>">
             
             <?php if ($isBestSeller): ?>
             <div class="bg-gradient-to-r from-amber-400 to-amber-500 text-slate-900 text-[11px] font-extrabold uppercase tracking-widest text-center py-1">
-                ⭐ Paling Populer & Recommended
+                ⭐ Paling Populer & Hemat
             </div>
             <?php endif; ?>
 
-            <div class="p-6">
-                <div class="flex justify-between items-start mb-2">
+            <div class="p-6 text-center">
+                <div class="flex justify-center items-center gap-2 mb-2">
                     <h3 class="text-xl font-display font-bold text-ink dark:text-slate-100"><?= htmlspecialchars($plan['name']) ?></h3>
                     <?php if ($isCurrentActive): ?>
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">Paket Aktif</span>
                     <?php endif; ?>
                 </div>
 
-                <p class="text-xs text-gray-500 dark:text-slate-400 mb-6 leading-relaxed"><?= htmlspecialchars($plan['description'] ?: 'Nikmati fitur keuangan PahamFin.') ?></p>
+                <p class="text-xs text-gray-500 dark:text-slate-400 mb-6 leading-relaxed"><?= htmlspecialchars($plan['description'] ?: 'Akses penuh seluruh fitur PahamFin.') ?></p>
 
-                <div class="mb-6 pb-6 border-b border-gray-100 dark:border-slate-700/50">
-                    <div class="flex items-baseline gap-1">
+                <div class="mb-4">
+                    <div class="flex items-baseline justify-center gap-1">
                         <span class="text-3xl lg:text-4xl font-extrabold text-ink dark:text-slate-100">Rp <?= number_format($plan['price'], 0, ',', '.') ?></span>
                     </div>
-                    <span class="text-xs text-gray-400 font-medium">Masa aktif <?= (int)$plan['duration_days'] ?> Hari (Otomatis Aktif)</span>
-                </div>
-
-                <!-- Feature list -->
-                <div class="space-y-3 mb-6">
-                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400">Fitur yang didapat:</p>
-                    <ul class="space-y-2.5 text-xs text-gray-700 dark:text-slate-300">
-                        <?php 
-                        $featuresList = array_filter(array_map('trim', explode("\n", (string)$plan['features'])));
-                        foreach ($featuresList as $feat):
-                        ?>
-                            <li class="flex items-start gap-2.5">
-                                <div class="w-4 h-4 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <i class="ph ph-check text-xs font-bold"></i>
-                                </div>
-                                <span><?= htmlspecialchars($feat) ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
+                    <span class="text-xs text-gray-400 font-medium">Masa aktif <?= (int)$plan['duration_days'] ?> Hari</span>
                 </div>
             </div>
 
