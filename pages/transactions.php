@@ -115,8 +115,8 @@ if (count($categories) === 0) {
 }
 
 /* --- Query dengan filter + pencarian + pagination --- */
-$where = ["t.user_id = ?"];
-$params = [$user_id];
+$where = $isAdmin ? ["1=1"] : ["t.user_id = ?"];
+$params = $isAdmin ? [] : [$user_id];
 
 if ($filters['type'] !== '') {
     $where[] = "t.type = ?";
