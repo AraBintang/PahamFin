@@ -274,8 +274,10 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 }
 ?>
 
-<!-- Notifikasi -->
 <?php
+require_once __DIR__ . '/../app/includes/header.php';
+require_once __DIR__ . '/../app/includes/sidebar.php';
+
 $flash = $_GET['success'] ?? '';
 $flashMsg = [
     'added' => 'Transaksi berhasil ditambahkan.',
@@ -288,23 +290,19 @@ $errorMsg = ['csrf' => 'Sesi tidak valid, coba lagi.', 'invalid' => 'Data transa
 ?>
 
 <?php if ($flashMsg !== ''): ?>
-    <div class="p-3 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800/50 text-green-700 dark:text-green-300 text-sm"><?= htmlspecialchars($flashMsg) ?></div>
+    <div class="mb-4 p-3 rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800/50 text-green-700 dark:text-green-300 text-sm"><?= htmlspecialchars($flashMsg) ?></div>
 <?php endif; ?>
 <?php if ($errorMsg !== ''): ?>
-    <div class="p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 text-sm"><?= htmlspecialchars($errorMsg) ?></div>
+    <div class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 text-sm"><?= htmlspecialchars($errorMsg) ?></div>
 <?php endif; ?>
 
-<?php
-require_once __DIR__ . '/../app/includes/header.php';
-require_once __DIR__ . '/../app/includes/sidebar.php';
-?>
 <div x-data="{
-    showForm: false,
+    showForm: <?= $editTransaction ? 'true' : 'false' ?>,
     showDelete: false,
     deleteId: null,
-    editMode: false,
+    editMode: <?= $editTransaction ? 'true' : 'false' ?>,
     form: {
-        id: null,
+        id: <?= json_encode($editTransaction['id'] ?? null) ?>,
         category_id: <?= htmlspecialchars(json_encode((string)($editTransaction['category_id'] ?? '')), ENT_QUOTES, 'UTF-8') ?>,
         type: <?= htmlspecialchars(json_encode((string)($editTransaction['type'] ?? 'PENGELUARAN')), ENT_QUOTES, 'UTF-8') ?>,
         amount: <?= htmlspecialchars(json_encode((string)($editTransaction['amount'] ?? '')), ENT_QUOTES, 'UTF-8') ?>,
@@ -318,16 +316,10 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
     },
     openEdit(id, category_id, type, amount, date, desc) {
         this.editMode = true;
-        this.form = { id, category_id: String(category_id), type, amount, transaction_date: date, description: desc };
+        this.form = { id: id, category_id: String(category_id), type: type, amount: amount, transaction_date: date, description: desc };
         this.showForm = true;
-        this.$nextTick(() => {
-            const sel = document.getElementById('categorySelect');
-            if (sel) sel.value = String(category_id);
-        });
     }
-}" <?php if ($editTransaction): ?>
-    x-init="openEdit(<?= (int)$editTransaction['id'] ?>, <?= (int)$editTransaction['category_id'] ?>, <?= htmlspecialchars(json_encode($editTransaction['type']), ENT_QUOTES, 'UTF-8') ?>, <?= (float)$editTransaction['amount'] ?>, <?= htmlspecialchars(json_encode($editTransaction['transaction_date']), ENT_QUOTES, 'UTF-8') ?>, <?= htmlspecialchars(json_encode($editTransaction['description']), ENT_QUOTES, 'UTF-8') ?>)"
-<?php endif; ?>>
+}">
     <div class="grid grid-cols-1 gap-6">
         <div class="glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
             <div class="p-4 lg:p-6 border-b border-gray-100 dark:border-slate-700/50 flex flex-wrap justify-between items-center gap-3">
@@ -339,7 +331,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                     <a href="print_report.php?<?= htmlspecialchars($filterQuery) ?>" target="_blank" class="px-4 py-2 bg-rose-600 text-white rounded-xl font-semibold shadow hover:bg-rose-700 flex items-center gap-2 text-sm transition">
                         <i class="ph ph-file-pdf text-lg"></i> Laporan PDF
                     </a>
-                    <button @click="openAdd()" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 flex items-center gap-2 text-sm transition">
+                    <button type="button" @click="openAdd()" class="px-4 py-2 bg-blue-600 text-white rounded-xl font-semibold shadow hover:bg-blue-700 flex items-center gap-2 text-sm transition">
                         <i class="ph ph-plus-circle text-lg"></i> Tambah
                     </button>
                 </div>
@@ -439,7 +431,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
     </div>
 
     <!-- Modal Konfirmasi Hapus -->
-    <div x-show="showDelete" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div x-show="showDelete" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div x-show="showDelete" x-transition.opacity @click="showDelete = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div x-show="showDelete" x-transition class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/90 rounded-2xl shadow-2xl backdrop-blur-xl w-full max-w-sm p-6 z-10 text-center">
             <div class="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
@@ -448,7 +440,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
             <h4 class="font-bold text-gray-900 dark:text-slate-100 text-lg mb-2">Hapus Transaksi?</h4>
             <p class="text-sm text-gray-500 dark:text-slate-400 mb-6">Tindakan ini tidak dapat dibatalkan. Data transaksi akan hilang permanen.</p>
             <div class="flex gap-3">
-                <button @click="showDelete = false" class="flex-1 px-4 py-2.5 text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl font-medium transition">
+                <button type="button" @click="showDelete = false" class="flex-1 px-4 py-2.5 text-gray-600 dark:text-slate-300 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 rounded-xl font-medium transition">
                     <i class="ph ph-x mr-1"></i> Batal
                 </button>
                 <form method="POST" class="flex-1">
@@ -464,7 +456,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
     </div>
 
     <!-- Modal Tambah/Edit Transaksi -->
-    <div x-show="showForm" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div x-show="showForm" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div x-show="showForm" x-transition.opacity @click="showForm = false" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
         <div x-show="showForm"
              x-transition:enter="transition ease-out duration-300"
@@ -482,7 +474,7 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                     </div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-slate-100" x-text="editMode ? 'Edit Transaksi' : 'Tambah Transaksi'"></h3>
                 </div>
-                <button @click="showForm = false" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition">
+                <button type="button" @click="showForm = false" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition">
                     <i class="ph ph-x text-xl"></i>
                 </button>
             </div>
@@ -558,5 +550,6 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
 </div>
 
 <?php require_once __DIR__ . '/../app/includes/footer.php'; ?>
+
 
 

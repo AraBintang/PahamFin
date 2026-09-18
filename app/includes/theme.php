@@ -34,6 +34,8 @@ function PahamFin_theme_toggle(string $variant = 'navbar'): string
 </script>
 
 <style>
+[x-cloak] { display: none !important; }
+
 /* ─────────────────────────────────────────────
    Canvas Background  (shared across all pages)
    ───────────────────────────────────────────── */
