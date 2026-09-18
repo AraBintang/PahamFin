@@ -296,30 +296,35 @@ $errorMsg = ['csrf' => 'Sesi tidak valid, coba lagi.', 'invalid' => 'Data transa
     <div class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-300 text-sm"><?= htmlspecialchars($errorMsg) ?></div>
 <?php endif; ?>
 
-<div x-data="{
-    showForm: <?= $editTransaction ? 'true' : 'false' ?>,
-    showDelete: false,
-    deleteId: null,
-    editMode: <?= $editTransaction ? 'true' : 'false' ?>,
-    form: {
-        id: <?= json_encode($editTransaction['id'] ?? null) ?>,
-        category_id: <?= htmlspecialchars(json_encode((string)($editTransaction['category_id'] ?? '')), ENT_QUOTES, 'UTF-8') ?>,
-        type: <?= htmlspecialchars(json_encode((string)($editTransaction['type'] ?? 'PENGELUARAN')), ENT_QUOTES, 'UTF-8') ?>,
-        amount: <?= htmlspecialchars(json_encode((string)($editTransaction['amount'] ?? '')), ENT_QUOTES, 'UTF-8') ?>,
-        transaction_date: <?= htmlspecialchars(json_encode((string)($editTransaction['transaction_date'] ?? date('Y-m-d'))), ENT_QUOTES, 'UTF-8') ?>,
-        description: <?= htmlspecialchars(json_encode((string)($editTransaction['description'] ?? '')), ENT_QUOTES, 'UTF-8') ?>
-    },
-    openAdd() {
-        this.editMode = false;
-        this.form = { id: null, category_id: '', type: 'PENGELUARAN', amount: '', transaction_date: '<?= date('Y-m-d') ?>', description: '' };
-        this.showForm = true;
-    },
-    openEdit(id, category_id, type, amount, date, desc) {
-        this.editMode = true;
-        this.form = { id: id, category_id: String(category_id), type: type, amount: amount, transaction_date: date, description: desc };
-        this.showForm = true;
-    }
-}">
+<script>
+function transactionPage() {
+    return {
+        showForm: <?= $editTransaction ? 'true' : 'false' ?>,
+        showDelete: false,
+        deleteId: null,
+        editMode: <?= $editTransaction ? 'true' : 'false' ?>,
+        form: {
+            id: <?= json_encode($editTransaction['id'] ?? null) ?>,
+            category_id: <?= json_encode((string)($editTransaction['category_id'] ?? '')) ?>,
+            type: <?= json_encode((string)($editTransaction['type'] ?? 'PENGELUARAN')) ?>,
+            amount: <?= json_encode((string)($editTransaction['amount'] ?? '')) ?>,
+            transaction_date: <?= json_encode((string)($editTransaction['transaction_date'] ?? date('Y-m-d'))) ?>,
+            description: <?= json_encode((string)($editTransaction['description'] ?? '')) ?>
+        },
+        openAdd() {
+            this.editMode = false;
+            this.form = { id: null, category_id: '', type: 'PENGELUARAN', amount: '', transaction_date: '<?= date('Y-m-d') ?>', description: '' };
+            this.showForm = true;
+        },
+        openEdit(id, category_id, type, amount, date, desc) {
+            this.editMode = true;
+            this.form = { id: id, category_id: String(category_id), type: type, amount: amount, transaction_date: date, description: desc };
+            this.showForm = true;
+        }
+    };
+}
+</script>
+<div x-data="transactionPage()">
     <div class="grid grid-cols-1 gap-6">
         <div class="glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/80 rounded-2xl shadow-sm overflow-hidden">
             <div class="p-4 lg:p-6 border-b border-gray-100 dark:border-slate-700/50 flex flex-wrap justify-between items-center gap-3">
