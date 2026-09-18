@@ -15,7 +15,7 @@
  * ------------------------------------------------------------------ */
 // Base URL aplikasi ini tanpa garis miring di akhir.
 // Dipakai untuk membangun tautan webhook & dashboard di balasan bot.
-define('PahamFin_BASE_URL', getenv('PahamFin_BASE_URL') ?: 'http://pahamfin.softwaremahasiswa.com');
+define('PahamFin_BASE_URL', getenv('PahamFin_BASE_URL') ?: 'https://pahamfin.softwaremahasiswa.com');
 
 // URL endpoint webhook yang menerima data dari bot (WA & Telegram).
 define('PahamFin_WEBHOOK_URL', getenv('PahamFin_WEBHOOK_URL') ?: PahamFin_BASE_URL . '/webhook.php');

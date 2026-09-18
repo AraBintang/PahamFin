@@ -318,8 +318,9 @@ if ($pdo) {
 }
 
 // ---- Migrasi: tambah kolom remember_token untuk "Remember Me" ----
-function PahamFin_column_exists(PDO $pdo, string $table, string $column): bool
+function PahamFin_column_exists(?PDO $pdo, string $table, string $column): bool
 {
+    if (!$pdo) return false;
     try {
         $rows = $pdo->query(
             "SELECT column_name FROM information_schema.columns " .
