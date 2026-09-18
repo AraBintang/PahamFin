@@ -152,25 +152,27 @@ define('PahamFin_TRIPAY_IS_PRODUCTION', getenv('PahamFin_TRIPAY_IS_PRODUCTION') 
  * UTILITAS
  * ------------------------------------------------------------------ */
 
-// Membangun tautan WhatsApp ke nomor tertentu.
-function PahamFin_wa_link(?string $phoneNumber): string
-{
-    $number = preg_replace('/[^0-9]/', '', (string) $phoneNumber);
-    if ($number === '') {
-        $number = preg_replace('/[^0-9]/', '', PahamFin_WA_FALLBACK_NUMBER);
+if (!function_exists('PahamFin_wa_link')) {
+    function PahamFin_wa_link(?string $phoneNumber): string
+    {
+        $number = preg_replace('/[^0-9]/', '', (string) $phoneNumber);
+        if ($number === '') {
+            $number = preg_replace('/[^0-9]/', '', PahamFin_WA_FALLBACK_NUMBER);
+        }
+        if ($number === '') {
+            return 'settings.php';
+        }
+        return 'https://wa.me/' . $number;
     }
-    if ($number === '') {
-        return 'settings.php';
-    }
-    return 'https://wa.me/' . $number;
 }
 
-// Membangun tautan Telegram ke username bot.
-function PahamFin_tg_link(): string
-{
-    $username = trim(PahamFin_TELEGRAM_BOT_USERNAME);
-    if ($username === '') {
-        return 'settings.php';
+if (!function_exists('PahamFin_tg_link')) {
+    function PahamFin_tg_link(): string
+    {
+        $username = trim(PahamFin_TELEGRAM_BOT_USERNAME);
+        if ($username === '') {
+            return 'settings.php';
+        }
+        return 'https://t.me/' . $username;
     }
-    return 'https://t.me/' . $username;
 }
