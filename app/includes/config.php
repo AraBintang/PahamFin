@@ -98,8 +98,8 @@ define('PahamFin_DB_PASS', getenv('PahamFin_DB_PASS') ?: '');
 // Isi Client ID & Client Secret dari Google Cloud Console
 // (https://console.cloud.google.com/apis/credentials).
 // Kosongkan bila belum pakai login Google.
-define('PahamFin_GOOGLE_CLIENT_ID', getenv('PahamFin_GOOGLE_CLIENT_ID') ?: '');
-define('PahamFin_GOOGLE_CLIENT_SECRET', getenv('PahamFin_GOOGLE_CLIENT_SECRET') ?: '');
+define('PahamFin_GOOGLE_CLIENT_ID', getenv('PahamFin_GOOGLE_CLIENT_ID') ?: '137593250877-higt0iul4a47ok05blc90o2qfooi9do4.apps.googleusercontent.com');
+define('PahamFin_GOOGLE_CLIENT_SECRET', getenv('PahamFin_GOOGLE_CLIENT_SECRET') ?: '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');
 
 // Redirect URI yang didaftarkan di Google (harus persis sama).
 define('PahamFin_GOOGLE_REDIRECT_URI', getenv('PahamFin_GOOGLE_REDIRECT_URI') ?: PahamFin_BASE_URL . '/auth/google-auth.php');
