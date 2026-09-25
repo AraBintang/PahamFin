@@ -75,9 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $errorMsg = 'Pembayaran belum terdeteksi. Silakan selesaikan pembayaran QRIS Anda atau gunakan tombol Aktivasi Instan.';
                         }
                     } else {
-                        // Buat Transaksi QRIS Tripay
+                        // Buat Transaksi QRIS Tripay (Channel code: QRIS2)
                         $merchantRef = 'SUB-' . $user_id . '-' . $planId . '-' . time();
-                        $tripayRes = PahamFin_tripay_create_transaction($merchantRef, (float)$targetPlan['price'], 'QRIS', $currentUser, $targetPlan);
+                        $tripayRes = PahamFin_tripay_create_transaction($merchantRef, (float)$targetPlan['price'], 'QRIS2', $currentUser, $targetPlan);
 
                         if ($tripayRes['success']) {
                             $tripayData = $tripayRes['data'];
