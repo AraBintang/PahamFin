@@ -58,24 +58,14 @@ $tgUsername = trim(PahamFin_TELEGRAM_BOT_USERNAME);
 
             <!-- Wadah Video YouTube Responsive 16:9 -->
             <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center group">
-                <!-- 
-                    ========================================================================
-                    TUTORIAL YOUTUBE EMBED:
-                    Jika Anda sudah memiliki link YouTube, ganti 'src' pada <iframe> di bawah:
-                    Contoh: src="https://www.youtube.com/embed/KODE_VIDEO_ANDA"
-                    ========================================================================
-                -->
                 <iframe class="w-full h-full rounded-xl"
-                        src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                        src="https://www.youtube.com/embed/fHL5qk2-0xI"
                         title="Video Tutorial PahamFin"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                         allowfullscreen>
                 </iframe>
             </div>
-            <p class="text-xs text-gray-400 dark:text-slate-500 mt-3 flex items-center gap-1.5">
-                <i class="ph ph-info"></i> Ganti kode video YouTube pada file <code class="bg-gray-100 dark:bg-slate-700 px-1 py-0.5 rounded text-gray-600 dark:text-slate-300">pages/guide.php</code> saat video sudah di-upload.
-            </p>
         </div>
 
         <!-- Panduan langkah demi langkah -->
