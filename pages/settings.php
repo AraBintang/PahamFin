@@ -270,9 +270,14 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">ID Telegram</label>
                     <input type="text" name="telegram_id" value="<?= htmlspecialchars($userProfile['telegram_id'] ?? '') ?>" class="w-full bg-white dark:bg-slate-900/50 border border-gray-300 dark:border-slate-600 rounded-xl px-3 py-2 focus:ring-primary focus:border-primary outline-none text-ink dark:text-slate-100" placeholder="123456789">
-                    <p class="text-xs text-gray-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-                        Belum tahu ID Telegram Anda? <a href="https://t.me/userinfotg2bot" target="_blank" rel="noopener" class="text-sky-600 dark:text-sky-400 font-semibold hover:underline inline-flex items-center gap-1">Cek ID via @userinfotg2bot <i class="ph ph-arrow-up-right text-xs"></i></a>
-                    </p>
+                    <div class="mt-2.5">
+                        <p class="text-xs text-gray-500 dark:text-slate-400 mb-1.5">Belum tahu ID Telegram Anda?</p>
+                        <a href="https://t.me/userinfotg2bot" target="_blank" rel="noopener"
+                           class="flex items-center justify-between w-full px-3.5 py-2.5 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50 text-xs font-semibold rounded-xl hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors shadow-sm">
+                            <span class="flex items-center gap-2"><i class="ph ph-telegram-logo text-base text-sky-500"></i>Cek ID via @userinfotg2bot</span>
+                            <i class="ph ph-arrow-up-right text-xs"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
