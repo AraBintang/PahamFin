@@ -168,6 +168,53 @@ require_once __DIR__ . '/../app/includes/sidebar.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Status Layanan & Langganan -->
+            <?php
+            $userSubSettings = PahamFin_get_user_active_subscription($pdo, $user_id);
+            $isAdminSettings = current_user_is_admin($pdo);
+            ?>
+            <div class="glass-card rounded-2xl shadow-md shadow-blue-900/5 border border-white/60 dark:border-slate-700/50 overflow-hidden">
+                <div class="p-4 lg:p-6 border-b border-gray-100 dark:border-slate-700/50 flex justify-between items-center bg-white/60 dark:bg-slate-800/60">
+                    <h3 class="text-base lg:text-lg font-display font-semibold text-ink dark:text-slate-100 flex items-center gap-2">
+                        <i class="ph ph-crown text-amber-500"></i> Status Layanan & Masa Aktif
+                    </h3>
+                </div>
+                <div class="p-4 lg:p-6 bg-white/40 dark:bg-slate-800/40 space-y-3">
+                    <?php if ($isAdminSettings): ?>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500 dark:text-slate-400">Tipe Akun</span>
+                            <span class="font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/40 px-2.5 py-1 rounded-full text-xs">👑 Admin (Akses Penuh)</span>
+                        </div>
+                    <?php elseif ($userSubSettings): 
+                        $expTs = strtotime($userSubSettings['expires_at']);
+                        $daysLeft = (int)ceil(($expTs - time()) / 86400);
+                    ?>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500 dark:text-slate-400">Paket Aktif</span>
+                            <span class="font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/40 px-2 py-0.5 rounded-full text-xs flex items-center gap-1">
+                                <i class="ph ph-check-circle"></i> <?= htmlspecialchars($userSubSettings['plan_name']) ?>
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm border-t border-gray-100 dark:border-slate-700/50 pt-3">
+                            <span class="text-gray-500 dark:text-slate-400">Tanggal Jatuh Tempo</span>
+                            <span class="font-semibold text-slate-800 dark:text-slate-200"><?= date('d F Y (H:i)', $expTs) ?></span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm border-t border-gray-100 dark:border-slate-700/50 pt-3">
+                            <span class="text-gray-500 dark:text-slate-400">Sisa Masa Aktif</span>
+                            <span class="font-bold <?= $daysLeft <= 5 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' ?>"><?= $daysLeft ?> Hari</span>
+                        </div>
+                    <?php else: ?>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-gray-500 dark:text-slate-400">Status Langganan</span>
+                            <span class="font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/40 px-2.5 py-1 rounded-full text-xs">Belum / Kedaluwarsa</span>
+                        </div>
+                        <a href="payment.php" class="block w-full text-center py-2 bg-primary text-white rounded-xl font-semibold text-xs transition hover:bg-[#0e7ad6] mt-2">
+                            Aktifkan Langganan Sekarang
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
             
             <!-- Ganti Password -->
             <div class="glass-card rounded-2xl shadow-md shadow-blue-900/5 border border-white/60 dark:border-slate-700/50 overflow-hidden">

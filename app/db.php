@@ -710,6 +710,33 @@ function PahamFin_activate_user_subscription(PDO $pdo, int $userId, int $planId,
     ];
 }
 
+function PahamFin_admin_set_user_subscription(PDO $pdo, int $userId, int $planId, string $startsAt, string $expiresAt, string $paymentMethod = 'ADMIN_MANUAL'): array
+{
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
+        $stmt->execute([$planId]);
+        $plan = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$plan) {
+            return ['success' => false, 'message' => 'Paket langganan tidak ditemukan.'];
+        }
+
+        $upd = $pdo->prepare("UPDATE user_subscriptions SET status = 'EXPIRED' WHERE user_id = ? AND status = 'ACTIVE'");
+        $upd->execute([$userId]);
+
+        $ins = $pdo->prepare("
+            INSERT INTO user_subscriptions (user_id, plan_id, amount, status, payment_method, starts_at, expires_at)
+            VALUES (?, ?, ?, 'ACTIVE', ?, ?, ?)
+        ");
+        $ins->execute([$userId, $planId, (float)$plan['price'], $paymentMethod, $startsAt, $expiresAt]);
+
+        return ['success' => true, 'message' => 'Layanan langganan ' . htmlspecialchars($plan['name']) . ' berhasil diset aktif hingga ' . date('d M Y H:i', strtotime($expiresAt)) . '.'];
+    } catch (PDOException $e) {
+        return ['success' => false, 'message' => 'Gagal mengubah langganan: ' . $e->getMessage()];
+    }
+}
+
+
 /**
  * Pengaturan Situs (Key-Value)
  */

@@ -161,6 +161,40 @@ $stmtRem->execute([$user_id, date('Y-m-d'), date('Y-m-d', strtotime('+3 days'))]
 $upcomingReminders = $stmtRem->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
+<?php
+// Ambil info langganan aktif user
+$userActiveSub = PahamFin_get_user_active_subscription($pdo, $user_id);
+$isAdminUser = current_user_is_admin($pdo);
+?>
+
+<?php if (!$isAdminUser && $userActiveSub): 
+    $subExpiresTs = strtotime($userActiveSub['expires_at']);
+    $subDaysLeft = (int)ceil(($subExpiresTs - time()) / 86400);
+    $isExpiringSoon = $subDaysLeft <= 5;
+?>
+<div class="p-4 rounded-2xl border <?= $isExpiringSoon ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200' : 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200' ?> flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+    <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl <?= $isExpiringSoon ? 'bg-amber-200 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300' : 'bg-emerald-200 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' ?> flex items-center justify-center shrink-0">
+            <i class="ph <?= $isExpiringSoon ? 'ph-clock-afternoon' : 'ph-crown' ?> text-xl"></i>
+        </div>
+        <div>
+            <div class="font-bold text-sm flex items-center gap-2">
+                <span>Status Langganan: <b><?= htmlspecialchars($userActiveSub['plan_name']) ?></b></span>
+                <span class="px-2 py-0.5 text-[10px] uppercase tracking-wider font-extrabold rounded-full <?= $isExpiringSoon ? 'bg-amber-200 text-amber-800' : 'bg-emerald-200 text-emerald-800' ?>">Aktif</span>
+            </div>
+            <p class="text-xs mt-0.5 opacity-90">
+                Masa berlaku hingga <b><?= date('d F Y', $subExpiresTs) ?></b> (sisa <b><?= $subDaysLeft ?> hari</b> lagi).
+            </p>
+        </div>
+    </div>
+    <?php if ($isExpiringSoon): ?>
+        <a href="payment.php" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition shadow-md shadow-amber-500/20 whitespace-nowrap">
+            Perpanjang Langganan
+        </a>
+    <?php endif; ?>
+</div>
+<?php endif; ?>
+
 <!-- Pemilih periode laporan -->
 <div class="flex flex-wrap items-center justify-between gap-3">
     <div>

@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $targetId = (int) ($_POST['user_id'] ?? 0);
         $action   = (string) ($_POST['action'] ?? '');
 
-        if ($targetId > 0 && in_array($action, ['promote', 'demote', 'delete'], true)) {
+        if ($targetId > 0) {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
             $stmt->execute([$targetId]);
             $target = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -27,52 +27,97 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$target) {
                 $flash = 'Pengguna tidak ditemukan.';
                 $flashType = 'error';
-            } elseif ($targetId === (int) current_user_id()) {
-                $flash = 'Tidak bisa mengubah status user Anda sendiri.';
-                $flashType = 'error';
             } else {
-                if ($action === 'promote') {
-                    $upd = $pdo->prepare("UPDATE users SET role = 'admin' WHERE id = ?");
-                    $upd->execute([$targetId]);
-                    $flash = 'User "' . htmlspecialchars($target['name']) . '" dijadikan admin.';
-                } elseif ($action === 'demote') {
-                    // Cegah demote jika email admin tercantum di config.
-                    if (PahamFin_user_role(['email' => $target['email'], 'role' => '']) === 'admin') {
-                        $flash = 'Email ini tercantum di PahamFin_ADMIN_EMAILS (config), tidak bisa dicabut status adminnya.';
+                if ($action === 'change_password') {
+                    $newPass = trim($_POST['new_password'] ?? '');
+                    if (strlen($newPass) < 6) {
+                        $flash = 'Password minimal 6 karakter.';
                         $flashType = 'error';
                     } else {
-                        $upd = $pdo->prepare("UPDATE users SET role = 'user' WHERE id = ?");
-                        $upd->execute([$targetId]);
-                        $flash = 'Status admin "' . htmlspecialchars($target['name']) . '" dicabut.';
+                        $hash = password_hash($newPass, PASSWORD_DEFAULT);
+                        $upd = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
+                        $upd->execute([$hash, $targetId]);
+                        $flash = 'Password pengguna "' . htmlspecialchars($target['name']) . '" berhasil diubah!';
                     }
-                } elseif ($action === 'delete') {
-                    $del = $pdo->prepare("DELETE FROM users WHERE id = ?");
-                    $del->execute([$targetId]);
-                    $flash = 'User "' . htmlspecialchars($target['name']) . '" beserta datanya dihapus.';
+                } elseif ($action === 'manage_subscription') {
+                    $planId = (int) ($_POST['plan_id'] ?? 0);
+                    $startsAt = trim($_POST['starts_at'] ?? date('Y-m-d H:i:s'));
+                    $expiresAt = trim($_POST['expires_at'] ?? date('Y-m-d H:i:s', strtotime('+30 days')));
+
+                    if (strlen($startsAt) === 10) $startsAt .= ' 00:00:00';
+                    if (strlen($expiresAt) === 10) $expiresAt .= ' 23:59:59';
+
+                    $res = PahamFin_admin_set_user_subscription($pdo, $targetId, $planId, $startsAt, $expiresAt, 'ADMIN_MANUAL');
+                    if ($res['success']) {
+                        $flash = 'Layanan langganan "' . htmlspecialchars($target['name']) . '" berhasil diperbarui (s/d ' . date('d M Y', strtotime($expiresAt)) . ')!';
+                    } else {
+                        $flash = $res['message'];
+                        $flashType = 'error';
+                    }
+                } elseif (in_array($action, ['promote', 'demote', 'delete'], true)) {
+                    if ($targetId === (int) current_user_id()) {
+                        $flash = 'Tidak bisa mengubah status user Anda sendiri.';
+                        $flashType = 'error';
+                    } else {
+                        if ($action === 'promote') {
+                            $upd = $pdo->prepare("UPDATE users SET role = 'admin' WHERE id = ?");
+                            $upd->execute([$targetId]);
+                            $flash = 'User "' . htmlspecialchars($target['name']) . '" dijadikan admin.';
+                        } elseif ($action === 'demote') {
+                            if (PahamFin_user_role(['email' => $target['email'], 'role' => '']) === 'admin') {
+                                $flash = 'Email ini tercantum di PahamFin_ADMIN_EMAILS (config), tidak bisa dicabut status adminnya.';
+                                $flashType = 'error';
+                            } else {
+                                $upd = $pdo->prepare("UPDATE users SET role = 'user' WHERE id = ?");
+                                $upd->execute([$targetId]);
+                                $flash = 'Status admin "' . htmlspecialchars($target['name']) . '" dicabut.';
+                            }
+                        } elseif ($action === 'delete') {
+                            $del = $pdo->prepare("DELETE FROM users WHERE id = ?");
+                            $del->execute([$targetId]);
+                            $flash = 'User "' . htmlspecialchars($target['name']) . '" beserta datanya dihapus.';
+                        }
+                    }
                 }
             }
         }
     }
 }
 
+// Ambil paket langganan untuk modal tambah layanan
+$plans = PahamFin_get_subscription_plans($pdo, false);
+
 $q = trim((string) ($_GET['q'] ?? ''));
 $roleFilter = trim((string) ($_GET['role'] ?? ''));
 $params = [];
 $where = [];
 if ($q !== '') {
-    $where[] = "(name LIKE ? OR email LIKE ? OR phone_number LIKE ?)";
+    $where[] = "(u.name LIKE ? OR u.email LIKE ? OR u.phone_number LIKE ?)";
     $like = '%' . $q . '%';
     $params[] = $like; $params[] = $like; $params[] = $like;
 }
 if (in_array($roleFilter, ['admin', 'user'], true)) {
-    $where[] = "LOWER(role) = ?";
+    $where[] = "LOWER(u.role) = ?";
     $params[] = $roleFilter;
 }
-$sql = "SELECT * FROM users";
+
+$nowStr = date('Y-m-d H:i:s');
+$sql = "
+    SELECT u.*, 
+           s.starts_at AS sub_starts, 
+           s.expires_at AS sub_expires, 
+           s.status AS sub_status, 
+           s.payment_method AS sub_payment,
+           p.id AS sub_plan_id,
+           p.name AS sub_plan_name
+    FROM users u
+    LEFT JOIN user_subscriptions s ON s.user_id = u.id AND s.status = 'ACTIVE' AND s.expires_at >= '$nowStr'
+    LEFT JOIN subscription_plans p ON s.plan_id = p.id
+";
 if (count($where) > 0) {
     $sql .= " WHERE " . implode(' AND ', $where);
 }
-$sql .= " ORDER BY created_at DESC, id DESC";
+$sql .= " ORDER BY u.created_at DESC, u.id DESC";
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
@@ -127,6 +172,18 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
     confirmBtnClass: '',
     confirmIconClass: '',
     confirmIconBg: '',
+
+    showPasswordModal: false,
+    passUserId: null,
+    passUserName: '',
+
+    showSubModal: false,
+    subUserId: null,
+    subUserName: '',
+    subPlanId: '',
+    subStartsAt: '<?= date('Y-m-d') ?>',
+    subExpiresAt: '<?= date('Y-m-d', strtotime('+30 days')) ?>',
+
     openConfirm(action, userId, title, desc, btnText, btnClass, iconClass, iconBg) {
         this.confirmAction = action;
         this.confirmUserId = userId;
@@ -137,20 +194,40 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
         this.confirmIconClass = iconClass;
         this.confirmIconBg = iconBg;
         this.showConfirm = true;
+    },
+
+    openPasswordModal(userId, userName) {
+        this.passUserId = userId;
+        this.passUserName = userName;
+        this.showPasswordModal = true;
+    },
+
+    openSubModal(userId, userName, currentPlanId, currentExpires) {
+        this.subUserId = userId;
+        this.subUserName = userName;
+        this.subPlanId = currentPlanId || '1';
+        if (currentExpires) {
+            this.subExpiresAt = currentExpires.substring(0, 10);
+        } else {
+            let d = new Date();
+            d.setDate(d.getDate() + 30);
+            this.subExpiresAt = d.toISOString().substring(0, 10);
+        }
+        this.showSubModal = true;
     }
 }">
 
 <!-- Tabel pengguna -->
 <div class="glass-card rounded-2xl shadow-md shadow-blue-900/5 border border-white/60 overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse min-w-[760px]">
+        <table class="w-full text-left border-collapse min-w-[880px]">
             <thead>
                 <tr class="text-gray-400 text-xs uppercase tracking-wider bg-white/60 dark:bg-slate-800/60">
                     <th class="p-4 font-medium">Pengguna</th>
                     <th class="p-4 font-medium">Nomor WA</th>
-                    <th class="p-4 font-medium">Telegram</th>
+                    <th class="p-4 font-medium">Layanan / Langganan</th>
                     <th class="p-4 font-medium">Terdaftar</th>
-                    <th class="p-4 font-medium">Status</th>
+                    <th class="p-4 font-medium">Role</th>
                     <th class="p-4 font-medium text-right">Aksi</th>
                 </tr>
             </thead>
@@ -163,11 +240,14 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
                     $isAdminRole = strtolower((string) ($u['role'] ?? 'user')) === 'admin';
                     $isConfigAdmin = PahamFin_user_role(['email' => $u['email'] ?? '', 'role' => '']) === 'admin';
                     $escapedName = htmlspecialchars($u['name'], ENT_QUOTES, 'UTF-8');
+
+                    $hasSub = !empty($u['sub_plan_name']) && !empty($u['sub_expires']) && strtotime($u['sub_expires']) >= time();
+                    $daysLeft = $hasSub ? ceil((strtotime($u['sub_expires']) - time()) / 86400) : 0;
                 ?>
                 <tr class="hover:bg-white/80 dark:bg-slate-800/80 transition-colors">
                     <td class="p-4">
                         <span class="flex items-center gap-3">
-                            <span class="w-9 h-9 rounded-full <?= $isAdminRole ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400' : 'bg-blue-50 dark:bg-blue-900/30 text-primary dark:text-blue-400' ?> flex items-center justify-center">
+                            <span class="w-9 h-9 rounded-full <?= $isAdminRole ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400' : 'bg-blue-50 dark:bg-blue-900/30 text-primary dark:text-blue-400' ?> flex items-center justify-center shrink-0">
                                 <i class="ph <?= $isAdminRole ? 'ph-shield-check' : 'ph-user' ?>"></i>
                             </span>
                             <span>
@@ -181,7 +261,32 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
                         </span>
                     </td>
                     <td class="p-4 text-gray-500 dark:text-slate-400"><?= htmlspecialchars($u['phone_number'] ?: '-') ?></td>
-                    <td class="p-4 text-gray-500 dark:text-slate-400"><?= htmlspecialchars($u['telegram_id'] ?: '-') ?></td>
+
+                    <!-- Kolom Layanan & Jatuh Tempo -->
+                    <td class="p-4">
+                        <?php if ($isAdminRole): ?>
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300">
+                                <i class="ph ph-crown"></i> Admin (Bypass)
+                            </span>
+                        <?php elseif ($hasSub): ?>
+                            <div>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300">
+                                    <i class="ph ph-check-circle"></i> <?= htmlspecialchars($u['sub_plan_name']) ?>
+                                </span>
+                                <div class="text-[11px] text-gray-500 dark:text-slate-400 mt-1">
+                                    Jatuh tempo: <b><?= date('d M Y', strtotime($u['sub_expires'])) ?></b>
+                                    <span class="text-emerald-600 dark:text-emerald-400 font-bold">(sisa <?= $daysLeft ?> hari)</span>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300">
+                                    <i class="ph ph-x-circle"></i> Non-Aktif / Kedaluwarsa
+                                </span>
+                            </div>
+                        <?php endif; ?>
+                    </td>
+
                     <td class="p-4 text-gray-500 dark:text-slate-400 whitespace-nowrap"><?= htmlspecialchars(date('d M Y', strtotime($u['created_at']))) ?></td>
                     <td class="p-4">
                         <?php if ($isAdminRole): ?>
@@ -191,7 +296,22 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
                         <?php endif; ?>
                     </td>
                     <td class="p-4">
-                        <div class="flex items-center justify-end gap-2">
+                        <div class="flex items-center justify-end gap-1.5 flex-wrap">
+                            <!-- Tombol Kelola Layanan / Langganan -->
+                            <button type="button"
+                                @click="openSubModal(<?= (int)$u['id'] ?>, <?= htmlspecialchars(json_encode($u['name']), ENT_QUOTES, 'UTF-8') ?>, '<?= (int)($u['sub_plan_id'] ?? 1) ?>', '<?= htmlspecialchars($u['sub_expires'] ?? '') ?>')"
+                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/50 hover:bg-sky-100 transition"
+                                title="Tambah / Atur Masa Langganan">
+                                <i class="ph ph-calendar-plus"></i> Layanan
+                            </button>
+
+                            <!-- Tombol Ganti Password -->
+                            <button type="button"
+                                @click="openPasswordModal(<?= (int)$u['id'] ?>, <?= htmlspecialchars(json_encode($u['name']), ENT_QUOTES, 'UTF-8') ?>)"
+                                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 hover:bg-amber-100 transition"
+                                title="Ubah Password User">
+                                <i class="ph ph-key"></i> Password
+                            </button>
                             <?php if (!$isSelf): ?>
                                 <?php if ($isAdminRole): ?>
                                     <button type="button" 
@@ -244,6 +364,113 @@ $adminTotal = (int) ($pdo->query("SELECT COUNT(*) FROM users WHERE LOWER(role) =
                 </button>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- Modal Reset Password -->
+<div x-show="showPasswordModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none;">
+    <div @click="showPasswordModal = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/95 rounded-3xl shadow-2xl backdrop-blur-xl w-full max-w-md p-6 z-10">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-slate-700/50 mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                    <i class="ph ph-key text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-slate-100">Ganti Password User</h3>
+                    <p class="text-xs text-gray-400" x-text="passUserName"></p>
+                </div>
+            </div>
+            <button @click="showPasswordModal = false" class="text-gray-400 hover:text-gray-600 p-1">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            <?= PahamFin_csrf_field() ?>
+            <input type="hidden" name="user_id" :value="passUserId">
+            <input type="hidden" name="action" value="change_password">
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Password Baru</label>
+                <input type="password" name="new_password" required minlength="6" placeholder="Masukkan password baru..."
+                       class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm">
+                <p class="text-[11px] text-gray-400 mt-1">Minimal 6 karakter.</p>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" @click="showPasswordModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-gray-200 transition">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-md shadow-amber-500/20 transition">
+                    Simpan Password Baru
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Tambah / Kelola Layanan (Langganan & Jatuh Tempo) -->
+<div x-show="showSubModal" x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display:none;">
+    <div @click="showSubModal = false" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="relative glass-card border border-white/60 dark:border-slate-700/50 dark:bg-slate-800/95 rounded-3xl shadow-2xl backdrop-blur-xl w-full max-w-md p-6 z-10">
+        <div class="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-slate-700/50 mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-sky-100 dark:bg-sky-900/40 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                    <i class="ph ph-calendar-plus text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-gray-900 dark:text-slate-100">Atur Layanan Langganan</h3>
+                    <p class="text-xs text-gray-400" x-text="subUserName"></p>
+                </div>
+            </div>
+            <button @click="showSubModal = false" class="text-gray-400 hover:text-gray-600 p-1">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            <?= PahamFin_csrf_field() ?>
+            <input type="hidden" name="user_id" :value="subUserId">
+            <input type="hidden" name="action" value="manage_subscription">
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Pilih Paket Langganan</label>
+                <select name="plan_id" x-model="subPlanId" required class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium">
+                    <?php foreach ($plans as $p): ?>
+                        <option value="<?= $p['id'] ?>">
+                            <?= htmlspecialchars($p['name']) ?> (Rp <?= number_format($p['price'], 0, ',', '.') ?> - <?= $p['duration_days'] ?> Hari)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Tanggal Mulai</label>
+                    <input type="date" name="starts_at" x-model="subStartsAt" required
+                           class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Jatuh Tempo (Expired)</label>
+                    <input type="date" name="expires_at" x-model="subExpiresAt" required
+                           class="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-medium">
+                </div>
+            </div>
+
+            <p class="text-[11px] text-gray-400 leading-relaxed">
+                Menyimpan form ini akan mengaktifkan layanan untuk pengguna dan memperbarui tanggal jatuh tempo langganan.
+            </p>
+
+            <div class="flex gap-3 pt-2">
+                <button type="button" @click="showSubModal = false" class="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 rounded-xl text-xs font-bold hover:bg-gray-200 transition">
+                    Batal
+                </button>
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition flex items-center justify-center gap-1.5">
+                    <i class="ph ph-check-circle"></i> Simpan Layanan
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
