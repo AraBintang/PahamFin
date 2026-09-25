@@ -8,6 +8,25 @@ require_once __DIR__ . '/../../app/includes/sidebar.php';
 ?>
 
 <?php
+$successMsg = null;
+$errorMsg = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_tutorial_video') {
+    if (!PahamFin_csrf_verify()) {
+        $errorMsg = 'Sesi CSRF tidak valid.';
+    } else {
+        $videoUrl = trim($_POST['tutorial_youtube_url'] ?? '');
+        if (!empty($videoUrl)) {
+            PahamFin_set_setting($pdo, 'tutorial_youtube_url', $videoUrl);
+            $successMsg = 'URL Video tutorial berhasil diperbarui!';
+        } else {
+            $errorMsg = 'URL Video tidak boleh kosong.';
+        }
+    }
+}
+
+$currentTutorialUrl = PahamFin_get_setting($pdo, 'tutorial_youtube_url', 'https://youtu.be/fHL5qk2-0xI?si=Q-5TEHuggBmy4mJc');
+
 // Ambil daftar email admin terkonfigurasi & admin aktif.
 $configuredEmails = [];
 if (defined('PahamFin_ADMIN_EMAILS')) {
@@ -104,6 +123,50 @@ $adminRows = $pdo->query(
                 <i class="ph ph-arrow-right"></i> Kelola Pengguna
             </a>
         </div>
+    </div>
+</div>
+
+<!-- Card Pengaturan Video Tutorial -->
+<div class="mt-6 glass-card rounded-2xl shadow-md shadow-blue-900/5 border border-white/60 overflow-hidden">
+    <div class="p-4 lg:p-6 border-b border-gray-100 dark:border-slate-700/50 bg-white/60 dark:bg-slate-800/60 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-red-50 dark:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400">
+                <i class="ph ph-youtube-logo text-xl"></i>
+            </div>
+            <div>
+                <h3 class="text-base lg:text-lg font-display font-bold text-ink dark:text-slate-100">Pengaturan Video Tutorial</h3>
+                <p class="text-xs text-gray-400">Ganti link YouTube video panduan yang tampil di halaman Panduan pengguna</p>
+            </div>
+        </div>
+    </div>
+    <div class="p-4 lg:p-6">
+        <?php if ($successMsg): ?>
+            <div class="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+                <i class="ph ph-check-circle text-base"></i> <?= htmlspecialchars($successMsg) ?>
+            </div>
+        <?php endif; ?>
+        <?php if ($errorMsg): ?>
+            <div class="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+                <i class="ph ph-warning-circle text-base"></i> <?= htmlspecialchars($errorMsg) ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" class="space-y-4">
+            <?= PahamFin_csrf_field() ?>
+            <input type="hidden" name="action" value="update_tutorial_video">
+            <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-slate-300 mb-1.5">Link / URL Video YouTube</label>
+                <div class="relative">
+                    <input type="text" name="tutorial_youtube_url" value="<?= htmlspecialchars($currentTutorialUrl) ?>" 
+                           placeholder="https://youtu.be/fHL5qk2-0xI"
+                           class="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-primary font-mono text-xs">
+                </div>
+                <p class="text-[11px] text-gray-400 mt-1.5">Mendukung format link YouTube biasa (https://www.youtube.com/watch?v=...), link pendek (https://youtu.be/...), atau embed ID.</p>
+            </div>
+            <button type="submit" class="px-5 py-2.5 bg-primary text-white font-semibold text-xs rounded-xl hover:bg-[#0e7ad6] transition shadow-md shadow-primary/20 inline-flex items-center gap-2">
+                <i class="ph ph-floppy-disk text-base"></i> Simpan Pengaturan Video
+            </button>
+        </form>
     </div>
 </div>
 

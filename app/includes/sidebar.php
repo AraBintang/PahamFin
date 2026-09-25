@@ -33,6 +33,7 @@
                 $admin_items = [
                     ['href' => PahamFin_URL_PAGES . '/admin/index.php',       'page' => 'index',        'icon' => 'ph-gauge',             'label' => 'Dashboard Admin'],
                     ['href' => PahamFin_URL_PAGES . '/admin/plans.php',       'page' => 'plans',        'icon' => 'ph-crown',             'label' => 'Paket Langganan'],
+                    ['href' => PahamFin_URL_PAGES . '/admin/vouchers.php',    'page' => 'vouchers',     'icon' => 'ph-ticket',            'label' => 'Voucher Shopee'],
                     ['href' => PahamFin_URL_PAGES . '/admin/users.php',       'page' => 'users',        'icon' => 'ph-users-three',       'label' => 'Pengguna'],
                     ['href' => PahamFin_URL_PAGES . '/admin/settings.php',    'page' => 'settings',     'icon' => 'ph-shield-check',      'label' => 'Pengaturan Admin'],
                 ];

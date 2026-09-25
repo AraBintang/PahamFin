@@ -5,6 +5,12 @@
 <?php
 $tgLink = PahamFin_tg_link();
 $tgUsername = trim(PahamFin_TELEGRAM_BOT_USERNAME);
+
+// Ambil URL Video Tutorial dari Pengaturan DB
+$rawVideoSetting = PahamFin_get_setting($pdo, 'tutorial_youtube_url', 'https://youtu.be/fHL5qk2-0xI?si=Q-5TEHuggBmy4mJc');
+preg_match('/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/', $rawVideoSetting, $matches);
+$youtubeVideoId = $matches[1] ?? 'fHL5qk2-0xI';
+$youtubeEmbedUrl = "https://www.youtube.com/embed/" . $youtubeVideoId;
 ?>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -59,7 +65,7 @@ $tgUsername = trim(PahamFin_TELEGRAM_BOT_USERNAME);
             <!-- Wadah Video YouTube Responsive 16:9 -->
             <div class="relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-700 shadow-inner flex items-center justify-center group">
                 <iframe class="w-full h-full rounded-xl"
-                        src="https://www.youtube.com/embed/fHL5qk2-0xI"
+                        src="<?= htmlspecialchars($youtubeEmbedUrl) ?>"
                         title="Video Tutorial PahamFin"
                         frameborder="0"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

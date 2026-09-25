@@ -213,6 +213,30 @@ function PahamFin_schema(PDO $pdo, string $driver): void
         )
     ");
 
+    // Tabel pengaturan situs (key-value store untuk admin).
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS site_settings (
+            id $autoIncrement,
+            setting_key VARCHAR(100) NOT NULL UNIQUE,
+            setting_value TEXT,
+            updated_at $timestamp
+        )
+    ");
+
+    // Tabel kode voucher (redeem code system).
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS voucher_codes (
+            id $autoIncrement,
+            code VARCHAR(50) NOT NULL UNIQUE,
+            plan_id INT NOT NULL,
+            is_used TINYINT NOT NULL DEFAULT 0,
+            used_by INT NULL,
+            used_at DATETIME NULL,
+            note VARCHAR(255) NULL,
+            created_at $timestamp
+        )
+    ");
+
     // Indeks (guard untuk MySQL <= 5.7 yang tidak mendukung ADD ... IF NOT EXISTS)
     $indexes = [
         "CREATE INDEX IF NOT EXISTS idx_categories_user ON categories (user_id)",
@@ -685,6 +709,120 @@ function PahamFin_activate_user_subscription(PDO $pdo, int $userId, int $planId,
         'expires_at' => $expiresAt
     ];
 }
+
+/**
+ * Pengaturan Situs (Key-Value)
+ */
+function PahamFin_get_setting(PDO $pdo, string $key, string $default = ''): string
+{
+    try {
+        $stmt = $pdo->prepare("SELECT setting_value FROM site_settings WHERE setting_key = ? LIMIT 1");
+        $stmt->execute([$key]);
+        $val = $stmt->fetchColumn();
+        return $val !== false ? (string)$val : $default;
+    } catch (PDOException $e) {
+        return $default;
+    }
+}
+
+function PahamFin_set_setting(PDO $pdo, string $key, string $value): bool
+{
+    try {
+        $stmt = $pdo->prepare("SELECT id FROM site_settings WHERE setting_key = ? LIMIT 1");
+        $stmt->execute([$key]);
+        if ($stmt->fetch()) {
+            $upd = $pdo->prepare("UPDATE site_settings SET setting_value = ?, updated_at = CURRENT_TIMESTAMP WHERE setting_key = ?");
+            return $upd->execute([$value, $key]);
+        } else {
+            $ins = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)");
+            return $ins->execute([$key, $value]);
+        }
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+/**
+ * Sistem Voucher / Redeem Code
+ */
+function PahamFin_redeem_voucher(PDO $pdo, int $userId, string $code): array
+{
+    $code = strtoupper(trim($code));
+    if (empty($code)) {
+        return ['success' => false, 'message' => 'Kode voucher tidak boleh kosong.'];
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM voucher_codes WHERE UPPER(code) = ? LIMIT 1");
+        $stmt->execute([$code]);
+        $v = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$v) {
+            return ['success' => false, 'message' => 'Kode voucher tidak valid atau tidak ditemukan.'];
+        }
+
+        if ((int)$v['is_used'] === 1) {
+            return ['success' => false, 'message' => 'Kode voucher ini sudah pernah digunakan.'];
+        }
+
+        // Tandai voucher terpakai
+        $now = date('Y-m-d H:i:s');
+        $upd = $pdo->prepare("UPDATE voucher_codes SET is_used = 1, used_by = ?, used_at = ? WHERE id = ?");
+        $upd->execute([$userId, $now, $v['id']]);
+
+        // Aktifkan paket langganan
+        $act = PahamFin_activate_user_subscription($pdo, $userId, (int)$v['plan_id'], 'VOUCHER:' . $code);
+        if ($act['success']) {
+            return [
+                'success' => true,
+                'message' => 'Voucher berhasil diklaim! ' . $act['message']
+            ];
+        } else {
+            return ['success' => false, 'message' => 'Voucher valid tetapi gagal mengaktifkan langganan: ' . $act['message']];
+        }
+
+    } catch (PDOException $e) {
+        return ['success' => false, 'message' => 'Terjadi kesalahan sistem: ' . $e->getMessage()];
+    }
+}
+
+function PahamFin_generate_vouchers(PDO $pdo, int $planId, int $count = 1, string $note = ''): array
+{
+    $createdCodes = [];
+    try {
+        $stmtPlan = $pdo->prepare("SELECT id FROM subscription_plans WHERE id = ? LIMIT 1");
+        $stmtPlan->execute([$planId]);
+        if (!$stmtPlan->fetch()) {
+            return ['success' => false, 'message' => 'Paket langganan tidak valid.'];
+        }
+
+        $ins = $pdo->prepare("INSERT INTO voucher_codes (code, plan_id, note) VALUES (?, ?, ?)");
+        
+        for ($i = 0; $i < $count; $i++) {
+            // Format kode voucher: PHM-XXXX-XXXX
+            $randomPart1 = strtoupper(bin2hex(random_bytes(2)));
+            $randomPart2 = strtoupper(bin2hex(random_bytes(2)));
+            $code = "PHM-{$randomPart1}-{$randomPart2}";
+
+            try {
+                $ins->execute([$code, $planId, $note]);
+                $createdCodes[] = $code;
+            } catch (PDOException $e) {
+                // Retry once if duplicate code generated
+                $randomPart1 = strtoupper(bin2hex(random_bytes(2)));
+                $randomPart2 = strtoupper(bin2hex(random_bytes(2)));
+                $code = "PHM-{$randomPart1}-{$randomPart2}";
+                $ins->execute([$code, $planId, $note]);
+                $createdCodes[] = $code;
+            }
+        }
+
+        return ['success' => true, 'codes' => $createdCodes];
+    } catch (PDOException $e) {
+        return ['success' => false, 'message' => 'Gagal membuat voucher: ' . $e->getMessage()];
+    }
+}
+
 
 $user_id = null;
 if (isset($_SESSION['user_id'])) {

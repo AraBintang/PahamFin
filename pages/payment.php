@@ -31,48 +31,59 @@ $tripayData = null;
 $errorMsg = null;
 $successMsg = null;
 
-// Handle Form Post (Pembayaran QRIS Tripay / Aktivasi Instan)
+// Handle Form Post (Pembayaran QRIS Tripay / Redeem Voucher / Aktivasi Instan)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!PahamFin_csrf_verify()) {
         $errorMsg = 'Sesi tidak valid, silakan muat ulang halaman.';
     } else {
-        $planId = (int) ($_POST['plan_id'] ?? 0);
         $action = $_POST['action'] ?? 'checkout';
 
-        if ($planId > 0) {
-            $stmtPlan = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
-            $stmtPlan->execute([$planId]);
-            $targetPlan = $stmtPlan->fetch(PDO::FETCH_ASSOC);
+        if ($action === 'redeem_voucher') {
+            $voucherCode = trim($_POST['voucher_code'] ?? '');
+            $redeemRes = PahamFin_redeem_voucher($pdo, $user_id, $voucherCode);
+            if ($redeemRes['success']) {
+                header('Location: ' . PahamFin_URL_PAGES . '/index.php?success=voucher_redeemed');
+                exit;
+            } else {
+                $errorMsg = $redeemRes['message'];
+            }
+        } else {
+            $planId = (int) ($_POST['plan_id'] ?? 0);
 
-            if ($targetPlan) {
-                if ($action === 'instant_activate') {
-                    // Fallback / Tes Aktivasi Langsung
-                    $result = PahamFin_activate_user_subscription($pdo, $user_id, $planId, 'QRIS_TEST');
-                    if ($result['success']) {
-                        header('Location: ' . PahamFin_URL_PAGES . '/index.php?success=activated');
-                        exit;
-                    } else {
-                        $errorMsg = $result['message'];
-                    }
-                } elseif ($action === 'check_status') {
-                    // Cek Ulang Status Langganan
-                    $checkSub = PahamFin_get_user_active_subscription($pdo, $user_id);
-                    if ($checkSub) {
-                        header('Location: ' . PahamFin_URL_PAGES . '/index.php?success=activated');
-                        exit;
-                    } else {
-                        $errorMsg = 'Pembayaran belum terdeteksi. Silakan selesaikan pembayaran QRIS Anda atau gunakan tombol Aktivasi Instan.';
-                    }
-                } else {
-                    // Buat Transaksi QRIS Tripay
-                    $merchantRef = 'SUB-' . $user_id . '-' . $planId . '-' . time();
-                    $tripayRes = PahamFin_tripay_create_transaction($merchantRef, (float)$targetPlan['price'], 'QRIS', $currentUser, $targetPlan);
+            if ($planId > 0) {
+                $stmtPlan = $pdo->prepare("SELECT * FROM subscription_plans WHERE id = ? LIMIT 1");
+                $stmtPlan->execute([$planId]);
+                $targetPlan = $stmtPlan->fetch(PDO::FETCH_ASSOC);
 
-                    if ($tripayRes['success']) {
-                        $tripayData = $tripayRes['data'];
+                if ($targetPlan) {
+                    if ($action === 'instant_activate') {
+                        // Fallback / Tes Aktivasi Langsung
+                        $result = PahamFin_activate_user_subscription($pdo, $user_id, $planId, 'QRIS_TEST');
+                        if ($result['success']) {
+                            header('Location: ' . PahamFin_URL_PAGES . '/index.php?success=activated');
+                            exit;
+                        } else {
+                            $errorMsg = $result['message'];
+                        }
+                    } elseif ($action === 'check_status') {
+                        // Cek Ulang Status Langganan
+                        $checkSub = PahamFin_get_user_active_subscription($pdo, $user_id);
+                        if ($checkSub) {
+                            header('Location: ' . PahamFin_URL_PAGES . '/index.php?success=activated');
+                            exit;
+                        } else {
+                            $errorMsg = 'Pembayaran belum terdeteksi. Silakan selesaikan pembayaran QRIS Anda atau gunakan tombol Aktivasi Instan.';
+                        }
                     } else {
-                        // Jika Tripay error (misal kredensial sandbox belum terset), beri opsi aktivasi instan
-                        $errorMsg = 'Gagal membuat QRIS Tripay: ' . ($tripayRes['message'] ?? 'Error API') . '. Anda dapat menggunakan tombol Aktivasi Instan di bawah.';
+                        // Buat Transaksi QRIS Tripay
+                        $merchantRef = 'SUB-' . $user_id . '-' . $planId . '-' . time();
+                        $tripayRes = PahamFin_tripay_create_transaction($merchantRef, (float)$targetPlan['price'], 'QRIS', $currentUser, $targetPlan);
+
+                        if ($tripayRes['success']) {
+                            $tripayData = $tripayRes['data'];
+                        } else {
+                            $errorMsg = 'Gagal membuat QRIS Tripay: ' . ($tripayRes['message'] ?? 'Error API') . '. Anda dapat menggunakan Redeem Kode Voucher Shopee atau Aktivasi Instan di bawah.';
+                        }
                     }
                 }
             }
@@ -84,11 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $plans = PahamFin_get_subscription_plans($pdo, true);
 ?>
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" x-data="{ darkMode: localStorage.getItem('PahamFin_dark') === '1', toggleDark() { this.darkMode = !this.darkMode; localStorage.setItem('PahamFin_dark', this.darkMode ? '1' : '0'); document.documentElement.classList.toggle('dark', this.darkMode); } }">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aktivasi & Pembayaran QRIS - PahamFin</title>
+    <title>Aktivasi & Pembayaran - PahamFin</title>
     <link rel="icon" type="image/png" href="<?= PahamFin_URL_LOGO ?>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/index.js"></script>
@@ -96,22 +107,28 @@ $plans = PahamFin_get_subscription_plans($pdo, true);
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: { extend: { colors: { primary: '#0A58A5' }, fontFamily: { display: ['Figtree', 'sans-serif'] } } }
         }
     </script>
+    <?php require_once __DIR__ . '/../app/includes/theme.php'; ?>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col justify-between">
+<body class="bg-canvas text-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col justify-between">
 
     <!-- Header Standalone -->
-    <header class="bg-white border-b border-slate-200 py-4 px-6 sticky top-0 z-30 shadow-sm">
+    <header class="glass-card border-b border-slate-200 dark:border-slate-800 py-4 px-6 sticky top-0 z-30 shadow-sm">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 object-contain">
-                <span class="font-display font-extrabold text-xl tracking-tight text-primary">Paham<span class="text-amber-500">Fin</span></span>
+                <span class="font-display font-extrabold text-xl tracking-tight text-primary dark:text-sky-400">Paham<span class="text-amber-500">Fin</span></span>
             </div>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-500 hidden sm:inline">Halo, <b><?= htmlspecialchars($currentUser['name']) ?></b></span>
-                <a href="<?= PahamFin_URL_AUTH ?>/logout.php" class="px-3 py-1.5 text-xs font-semibold text-rose-600 border border-rose-200 hover:bg-rose-50 rounded-xl transition">
+                <span class="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">Halo, <b><?= htmlspecialchars($currentUser['name']) ?></b></span>
+                
+                <!-- Tombol Tema (Dark/Light Mode) -->
+                <?= PahamFin_theme_toggle('navbar') ?>
+
+                <a href="<?= PahamFin_URL_AUTH ?>/logout.php" class="px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition">
                     Keluar
                 </a>
             </div>
@@ -122,16 +139,40 @@ $plans = PahamFin_get_subscription_plans($pdo, true);
     <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
 
         <!-- Banner Informasi -->
-        <div class="text-center max-w-2xl mx-auto mb-10">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-100 text-amber-800 mb-3">
-                <i class="ph ph-qr-code text-sm"></i> Aktivasi Langganan QRIS Tripay
+        <div class="text-center max-w-2xl mx-auto mb-8">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 mb-3">
+                <i class="ph ph-qr-code text-sm"></i> Aktivasi Langganan QRIS / Voucher Shopee
             </span>
-            <h1 class="text-2xl sm:text-3xl font-display font-extrabold text-slate-900">
-                Pilih Paket & Selesaikan Pembayaran
+            <h1 class="text-2xl sm:text-3xl font-display font-extrabold text-slate-900 dark:text-slate-100">
+                Pilih Paket atau Redeem Kode Voucher
             </h1>
-            <p class="text-sm text-slate-500 mt-2 leading-relaxed">
-                Akun Anda belum aktif. Pilih paket langganan di bawah ini untuk mengaktifkan akses ke Dashboard PahamFin, Bot Telegram AI, Pencatatan Transaksi & Fitur Keuangan Lengkap.
+            <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                Akun Anda belum aktif. Pilih paket langganan QRIS di bawah ini atau masukkan kode voucher yang sudah Anda beli di Shopee untuk mengaktifkan akses penuh.
             </p>
+        </div>
+
+        <!-- Box Redeem Kode Voucher Shopee -->
+        <div class="max-w-xl mx-auto mb-10 glass-card rounded-3xl p-6 border border-amber-200/60 dark:border-amber-900/50 shadow-lg">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md">
+                    <i class="ph ph-ticket text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Punya Kode Voucher Shopee?</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Masukkan kode voucher untuk aktivasi instan tanpa bayar lagi.</p>
+                </div>
+            </div>
+
+            <form method="POST" class="flex flex-col sm:flex-row gap-2.5">
+                <?= PahamFin_csrf_field() ?>
+                <input type="hidden" name="action" value="redeem_voucher">
+                <div class="relative flex-1">
+                    <input type="text" name="voucher_code" placeholder="Contoh: PHM-ABCD-1234" required
+                           class="w-full px-4 py-3 bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-amber-500">
+                </div>
+                <button type="submit" class="px-6 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-2xl transition shadow-md shadow-amber-500/20 shrink-0 flex items-center justify-center gap-2">
+                    <i class="ph ph-check-circle text-base"></i> Redeem Kode
+                </button>
         </div>
 
         <?php if ($errorMsg): ?>
