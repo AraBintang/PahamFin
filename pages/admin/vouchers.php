@@ -48,10 +48,10 @@ require_once __DIR__ . '/../../app/includes/sidebar.php';
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-xl lg:text-2xl font-display font-extrabold text-ink dark:text-slate-100 flex items-center gap-2">
-                <i class="ph ph-ticket text-amber-500 text-2xl lg:text-3xl"></i> Kelola Kode Voucher / Shopee Redeem
+                <i class="ph ph-ticket text-amber-500 text-2xl lg:text-3xl"></i> Kelola Kode Voucher / Redeem Code
             </h1>
             <p class="text-xs lg:text-sm text-gray-500 dark:text-slate-400 mt-1">
-                Buat kode voucher untuk dijual di Shopee atau marketplace lain. Pengguna bisa melakukan redeem kode saat aktivasi akun.
+                Buat kode voucher untuk dijual di marketplace (Shopee/Tokopedia), WhatsApp, atau promo khusus. Pengguna dapat langsung me-redeem kode saat aktivasi akun.
             </p>
         </div>
     </div>

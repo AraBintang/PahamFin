@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if ($tripayRes['success']) {
                             $tripayData = $tripayRes['data'];
                         } else {
-                            $errorMsg = 'Gagal membuat QRIS Tripay: ' . ($tripayRes['message'] ?? 'Error API') . '. Anda dapat menggunakan Redeem Kode Voucher Shopee atau Aktivasi Instan di bawah.';
+                            $errorMsg = 'Gagal membuat QRIS Tripay: ' . ($tripayRes['message'] ?? 'Error API') . '. Anda dapat menggunakan Redeem Kode Voucher atau Aktivasi Instan di bawah.';
                         }
                     }
                 }
@@ -141,24 +141,24 @@ $plans = PahamFin_get_subscription_plans($pdo, true);
         <!-- Banner Informasi -->
         <div class="text-center max-w-2xl mx-auto mb-8">
             <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 mb-3">
-                <i class="ph ph-qr-code text-sm"></i> Aktivasi Langganan QRIS / Voucher Shopee
+                <i class="ph ph-qr-code text-sm"></i> Aktivasi Langganan QRIS / Kode Voucher
             </span>
             <h1 class="text-2xl sm:text-3xl font-display font-extrabold text-slate-900 dark:text-slate-100">
                 Pilih Paket atau Redeem Kode Voucher
             </h1>
             <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-                Akun Anda belum aktif. Pilih paket langganan QRIS di bawah ini atau masukkan kode voucher yang sudah Anda beli di Shopee untuk mengaktifkan akses penuh.
+                Akun Anda belum aktif. Pilih paket langganan QRIS di bawah ini atau masukkan kode voucher yang sudah Anda miliki untuk mengaktifkan akses penuh.
             </p>
         </div>
 
-        <!-- Box Redeem Kode Voucher Shopee -->
+        <!-- Box Redeem Kode Voucher -->
         <div class="max-w-xl mx-auto mb-10 glass-card rounded-3xl p-6 border border-amber-200/60 dark:border-amber-900/50 shadow-lg">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-md">
                     <i class="ph ph-ticket text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Punya Kode Voucher Shopee?</h3>
+                    <h3 class="font-bold text-base text-slate-900 dark:text-slate-100">Punya Kode Voucher / Redeem Code?</h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Masukkan kode voucher untuk aktivasi instan tanpa bayar lagi.</p>
                 </div>
             </div>
