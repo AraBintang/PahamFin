@@ -7,17 +7,17 @@
             <!-- Logo -->
             <div class="flex items-center justify-between p-4 border-b border-white/10 shrink-0" :class="collapsed ? 'lg:justify-center lg:p-3' : ''">
                 <div class="flex items-center gap-3" :class="collapsed ? 'lg:hidden' : ''">
-                    <div class="w-12 h-12 flex items-center justify-center overflow-hidden drop-shadow-sm">
+                    <div class="w-14 h-14 flex items-center justify-center overflow-hidden drop-shadow-sm">
                         <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain scale-110">
                     </div>
                     <div>
-                        <h1 class="font-display font-extrabold text-xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
-                        <p class="text-[10px] text-blue-200/70 font-medium tracking-wider mt-0.5">FINANCE MANAGER</p>
+                        <h1 class="font-display font-extrabold text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
+                        <p class="text-[11px] text-blue-200/70 font-medium tracking-wider mt-0.5">FINANCE MANAGER</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
                     <button @click="collapsed = !collapsed" class="hidden lg:flex w-9 h-9 items-center justify-center rounded-xl text-white/70 hover:bg-white/15 hover:text-white transition-colors" title="Sembunyikan / tampilkan menu">
-                        <i class="ph text-xl" :class="collapsed ? 'ph-sidebar-simple' : 'ph-sidebar'"></i>
+                        <i class="ph text-2xl" :class="collapsed ? 'ph-sidebar-simple' : 'ph-sidebar'"></i>
                     </button>
                     <button @click="sidebarOpen = false" class="lg:hidden text-white/70 hover:text-white p-2">
                         <i class="ph ph-x text-2xl"></i>
@@ -43,8 +43,8 @@
                     $aiActiveClass = $aiActive ? 'bg-white/20 text-white shadow' : 'text-blue-100/80 hover:bg-white/10 hover:text-white';
                 ?>
                 <a href="<?= $ai['href'] ?>" class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all <?= $aiActiveClass ?>" :class="collapsed ? 'lg:justify-center lg:px-0' : ''" title="<?= $ai['label'] ?>">
-                    <i class="ph <?= $ai['icon'] ?> text-xl shrink-0 <?= $aiActive ? 'text-amber-300' : '' ?>"></i>
-                    <span x-show="!collapsed" class="truncate text-sm"><?= $ai['label'] ?></span>
+                    <i class="ph <?= $ai['icon'] ?> text-2xl shrink-0 <?= $aiActive ? 'text-amber-300' : '' ?>"></i>
+                    <span x-show="!collapsed" class="truncate text-base"><?= $ai['label'] ?></span>
                     <?php if ($aiActive): ?><i class="ph ph-caret-right ml-auto text-amber-300/70 text-sm" x-show="!collapsed"></i><?php endif; ?>
                 </a>
                 <?php endforeach; ?>
@@ -66,8 +66,8 @@
                     $activeClass = $isActive ? 'bg-white/20 text-white shadow' : 'text-blue-100/80 hover:bg-white/10 hover:text-white';
                 ?>
                 <a href="<?= PahamFin_URL_PAGES ?>/<?= $page ?>.php" class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all <?= $activeClass ?>" :class="collapsed ? 'lg:justify-center lg:px-0' : ''" title="<?= $data['label'] ?>">
-                    <i class="ph <?= $data['icon'] ?> text-xl shrink-0 <?= $isActive ? 'text-amber-300' : '' ?>"></i>
-                    <span x-show="!collapsed" class="truncate text-sm"><?= $data['label'] ?></span>
+                    <i class="ph <?= $data['icon'] ?> text-2xl shrink-0 <?= $isActive ? 'text-amber-300' : '' ?>"></i>
+                    <span x-show="!collapsed" class="truncate text-base"><?= $data['label'] ?></span>
                     <?php if ($isActive): ?><i class="ph ph-caret-right ml-auto text-amber-300/70 text-sm" x-show="!collapsed"></i><?php endif; ?>
                 </a>
                 <?php endforeach; ?>
@@ -86,8 +86,8 @@
                     $activeClass = $isActive ? 'bg-white/20 text-white shadow' : 'text-blue-100/80 hover:bg-white/10 hover:text-white';
                 ?>
                 <a href="<?= PahamFin_URL_PAGES ?>/<?= $page ?>.php" class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all <?= $activeClass ?>" :class="collapsed ? 'lg:justify-center lg:px-0' : ''" title="<?= $data['label'] ?>">
-                    <i class="ph <?= $data['icon'] ?> text-xl shrink-0 <?= $isActive ? 'text-amber-300' : '' ?>"></i>
-                    <span x-show="!collapsed" class="truncate text-sm"><?= $data['label'] ?></span>
+                    <i class="ph <?= $data['icon'] ?> text-2xl shrink-0 <?= $isActive ? 'text-amber-300' : '' ?>"></i>
+                    <span x-show="!collapsed" class="truncate text-base"><?= $data['label'] ?></span>
                     <?php if ($isActive): ?><i class="ph ph-caret-right ml-auto text-amber-300/70 text-sm" x-show="!collapsed"></i><?php endif; ?>
                 </a>
                 <?php endforeach; ?>
@@ -104,8 +104,8 @@
                     $activeClass = $isActive ? 'bg-white/20 text-white shadow' : 'text-blue-100/80 hover:bg-white/10 hover:text-white';
                 ?>
                 <a href="<?= PahamFin_URL_PAGES ?>/<?= $page ?>.php" class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all <?= $activeClass ?>" :class="collapsed ? 'lg:justify-center lg:px-0' : ''" title="<?= $data['label'] ?>">
-                    <i class="ph <?= $data['icon'] ?> text-xl shrink-0 <?= $isActive ? 'text-amber-300' : '' ?>"></i>
-                    <span x-show="!collapsed" class="truncate text-sm"><?= $data['label'] ?></span>
+                    <i class="ph <?= $data['icon'] ?> text-2xl shrink-0 <?= $isActive ? 'text-amber-300' : '' ?>"></i>
+                    <span x-show="!collapsed" class="truncate text-base"><?= $data['label'] ?></span>
                     <?php if ($isActive): ?><i class="ph ph-caret-right ml-auto text-amber-300/70 text-sm" x-show="!collapsed"></i><?php endif; ?>
                 </a>
                 <?php endforeach; ?>
@@ -118,19 +118,19 @@
                 ?>
                 <div class="flex" x-show="!collapsed">
                     <a href="<?= htmlspecialchars('https://web.telegram.org/k/#@' . PahamFin_TELEGRAM_BOT_USERNAME) ?>" target="_blank" rel="noopener"
-                       class="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-xl bg-sky-500/20 text-sky-200 text-xs font-semibold hover:bg-sky-500/30 transition-colors"
+                       class="flex items-center justify-center gap-2 w-full px-3 py-2.5 rounded-xl bg-sky-500/20 text-sky-200 text-sm font-semibold hover:bg-sky-500/30 transition-colors"
                        title="Chat Bot Telegram">
-                        <i class="ph ph-telegram-logo text-base"></i> Buka Bot Telegram
+                        <i class="ph ph-telegram-logo text-xl"></i> Buka Bot Telegram
                     </a>
                 </div>
                 <!-- User info -->
                 <div class="flex items-center gap-3 px-2 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition-colors cursor-default" :class="collapsed ? 'lg:justify-center lg:px-0' : ''">
                     <?php if (!empty($userProfile['profile_pic'])): ?>
-                        <div class="w-9 h-9 rounded-full overflow-hidden border-2 border-white/20 shrink-0 shadow-inner">
+                        <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20 shrink-0 shadow-inner">
                             <img src="<?= PahamFin_BASE_URL ?>/image/profiles/<?= htmlspecialchars($userProfile['profile_pic']) ?>" alt="Profile" class="w-full h-full object-cover">
                         </div>
                     <?php else: ?>
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center border-2 border-white/20 shrink-0 font-bold text-sm text-white shadow-inner">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 flex items-center justify-center border-2 border-white/20 shrink-0 font-bold text-base text-white shadow-inner">
                             <?= mb_strtoupper(mb_substr($userProfile['name'] ?? 'P', 0, 1)) ?>
                         </div>
                     <?php endif; ?>
@@ -140,7 +140,7 @@
                     </div>
                 </div>
                 <a href="<?= PahamFin_URL_AUTH ?>/logout.php" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-rose-300/80 hover:bg-rose-500/15 hover:text-rose-200 transition-colors" :class="collapsed ? 'lg:justify-center lg:px-0' : ''" title="Keluar">
-                    <i class="ph ph-sign-out text-xl shrink-0"></i>
+                    <i class="ph ph-sign-out text-2xl shrink-0"></i>
                     <span x-show="!collapsed">Keluar</span>
                 </a>
             </div>

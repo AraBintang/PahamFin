@@ -75,29 +75,29 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 <body class="bg-canvas text-dark dark:text-slate-100 antialiased font-sans">
 
 <!-- ===================== NAVBAR ===================== -->
-<header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
+<header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-20 md:h-24 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
     <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 h-full flex items-center justify-between">
-        <a href="index.php" class="flex items-center gap-2">
-            <div class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center">
-                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-12 h-12 md:w-14 md:h-14 object-contain">
+        <a href="index.php" class="flex items-center gap-3">
+            <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow">
             </div>
-            <span class="font-display text-2xl font-extrabold text-dark dark:text-white">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
+            <span class="font-display text-3xl md:text-4xl font-extrabold text-dark dark:text-white tracking-tight">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
         </a>
         <nav class="hidden lg:flex items-center gap-[42px]">
-            <a href="#fitur" class="text-sm font-medium hover:opacity-60 transition-opacity">Fitur</a>
-            <a href="#keunggulan" class="text-sm font-medium hover:opacity-60 transition-opacity">Keunggulan</a>
-            <a href="#cara-pakai" class="text-sm font-medium hover:opacity-60 transition-opacity">Cara Pakai</a>
-            <a href="#testimoni" class="text-sm font-medium hover:opacity-60 transition-opacity">Testimoni</a>
-            <a href="#harga" class="text-sm font-medium hover:opacity-60 transition-opacity">Harga</a>
-            <a href="#faq" class="text-sm font-medium hover:opacity-60 transition-opacity">FAQ</a>
+            <a href="#fitur" class="text-base font-semibold hover:opacity-60 transition-opacity">Fitur</a>
+            <a href="#keunggulan" class="text-base font-semibold hover:opacity-60 transition-opacity">Keunggulan</a>
+            <a href="#cara-pakai" class="text-base font-semibold hover:opacity-60 transition-opacity">Cara Pakai</a>
+            <a href="#testimoni" class="text-base font-semibold hover:opacity-60 transition-opacity">Testimoni</a>
+            <a href="#harga" class="text-base font-semibold hover:opacity-60 transition-opacity">Harga</a>
+            <a href="#faq" class="text-base font-semibold hover:opacity-60 transition-opacity">FAQ</a>
         </nav>
         <div class="hidden lg:flex items-center gap-3">
             <?= PahamFin_theme_toggle('landing') ?>
             <?php if ($isLoggedIn): ?>
-                <a href="index.php" class="inline-flex items-center justify-center w-[110px] h-[40px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors">Dashboard</a>
+                <a href="index.php" class="inline-flex items-center justify-center w-[120px] h-[44px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors text-base">Dashboard</a>
             <?php else: ?>
-                <a href="<?= PahamFin_URL_AUTH ?>/login.php" class="inline-flex items-center justify-center w-[110px] h-[40px] border-primary border-2 text-primary dark:text-blue-400 font-semibold rounded hover:bg-[#3A519D] hover:text-white transition-colors">Masuk</a>
-                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="inline-flex items-center justify-center w-[110px] h-[40px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90">Daftar</a>
+                <a href="<?= PahamFin_URL_AUTH ?>/login.php" class="inline-flex items-center justify-center w-[110px] h-[44px] border-primary border-2 text-primary dark:text-blue-400 font-semibold rounded-lg hover:bg-[#3A519D] hover:text-white transition-colors text-base">Masuk</a>
+                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="inline-flex items-center justify-center w-[110px] h-[44px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90 text-base">Daftar</a>
             <?php endif; ?>
         </div>
         <button @click="menuOpen = !menuOpen" class="lg:hidden text-2xl text-dark dark:text-white">
@@ -289,23 +289,23 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
         <div class="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="rounded-2xl p-6 text-left bg-gradient-to-b from-white/90 to-blue-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-blue-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-4"><i class="ph ph-telegram-logo text-2xl"></i></div>
-                <h3 class="font-semibold text-lg text-dark dark:text-white">Catat via Chat</h3>
+                <div class="w-16 h-16 rounded-2xl bg-primary text-white flex items-center justify-center mb-5 shadow-md shadow-blue-500/20"><i class="ph ph-telegram-logo text-3xl lg:text-4xl"></i></div>
+                <h3 class="font-bold text-xl text-dark dark:text-white">Catat via Chat</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Kirim pesan ke bot Telegram. Transaksi langsung tercatat otomatis.</p>
             </div>
             <div class="rounded-2xl p-6 text-left bg-gradient-to-b from-white/90 to-green-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-green-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 rounded-xl bg-green-600 text-white flex items-center justify-center mb-4"><i class="ph ph-magic-wand text-2xl"></i></div>
-                <h3 class="font-semibold text-lg text-dark dark:text-white">Keyword Otomatis</h3>
+                <div class="w-16 h-16 rounded-2xl bg-green-600 text-white flex items-center justify-center mb-5 shadow-md shadow-green-500/20"><i class="ph ph-magic-wand text-3xl lg:text-4xl"></i></div>
+                <h3 class="font-bold text-xl text-dark dark:text-white">Keyword Otomatis</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Atur keyword tiap kategori. "makan 50000" langsung masuk kategori Makanan.</p>
             </div>
             <div class="rounded-2xl p-6 text-left bg-gradient-to-b from-white/90 to-cyan-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-cyan-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 rounded-xl bg-cyan-600 text-white flex items-center justify-center mb-4"><i class="ph ph-chart-line-up text-2xl"></i></div>
-                <h3 class="font-semibold text-lg text-dark dark:text-white">Laporan & Dashboard</h3>
+                <div class="w-16 h-16 rounded-2xl bg-cyan-600 text-white flex items-center justify-center mb-5 shadow-md shadow-cyan-500/20"><i class="ph ph-chart-line-up text-3xl lg:text-4xl"></i></div>
+                <h3 class="font-bold text-xl text-dark dark:text-white">Laporan & Dashboard</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Pantau saldo, pemasukan, pengeluaran, dan anggaran per kategori dalam satu dashboard.</p>
             </div>
             <div class="rounded-2xl p-6 text-left bg-gradient-to-b from-white/90 to-rose-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-rose-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center mb-4"><i class="ph ph-shield-check text-2xl"></i></div>
-                <h3 class="font-semibold text-lg text-dark dark:text-white">Data Terpusat & Aman</h3>
+                <div class="w-16 h-16 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-5 shadow-md shadow-rose-500/20"><i class="ph ph-shield-check text-3xl lg:text-4xl"></i></div>
+                <h3 class="font-bold text-xl text-dark dark:text-white">Data Terpusat & Aman</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Semua catatan tersimpan terpusat untuk akun kamu dan hanya bisa diakses oleh kamu.</p>
             </div>
         </div>
@@ -322,23 +322,23 @@ $isLoggedIn = !empty($_SESSION['user_id']);
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div class="bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/80 dark:border-slate-700/50">
-                    <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 text-primary dark:text-blue-400 flex items-center justify-center mb-3"><i class="ph ph-chat-circle-text text-xl"></i></div>
-                    <h3 class="font-semibold text-dark dark:text-white">Rekap AI via Chat</h3>
+                    <div class="w-14 h-14 rounded-xl bg-blue-100 dark:bg-blue-900/50 text-primary dark:text-blue-400 flex items-center justify-center mb-4"><i class="ph ph-chat-circle-text text-3xl"></i></div>
+                    <h3 class="font-semibold text-lg text-dark dark:text-white">Rekap AI via Chat</h3>
                     <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Cukup tulis nominal beserta keterangan, bot yang menyelesaikan pencatatannya.</p>
                 </div>
                 <div class="bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/80 dark:border-slate-700/50">
-                    <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 flex items-center justify-center mb-3"><i class="ph ph-currency-circle-dollar text-xl"></i></div>
-                    <h3 class="font-semibold text-dark dark:text-white">Dukungan rb / ribu / k</h3>
+                    <div class="w-14 h-14 rounded-xl bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 flex items-center justify-center mb-4"><i class="ph ph-currency-circle-dollar text-3xl"></i></div>
+                    <h3 class="font-semibold text-lg text-dark dark:text-white">Dukungan rb / ribu / k</h3>
                     <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Tulis "100rb" atau "50k" saja, PahamFin mengubahnya jadi nominal yang benar.</p>
                 </div>
                 <div class="bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/80 dark:border-slate-700/50">
-                    <div class="w-10 h-10 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center mb-3"><i class="ph ph-graph text-xl"></i></div>
-                    <h3 class="font-semibold text-dark dark:text-white">Grafik Anggaran</h3>
+                    <div class="w-14 h-14 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center mb-4"><i class="ph ph-graph text-3xl"></i></div>
+                    <h3 class="font-semibold text-lg text-dark dark:text-white">Grafik Anggaran</h3>
                     <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Lihat pengeluaran per kategori dengan progres dan tips pengelolaan.</p>
                 </div>
                 <div class="bg-white/80 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-white/80 dark:border-slate-700/50">
-                    <div class="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 flex items-center justify-center mb-3"><i class="ph ph-bell-ringing text-xl"></i></div>
-                    <h3 class="font-semibold text-dark dark:text-white">Bot Telegram</h3>
+                    <div class="w-14 h-14 rounded-xl bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 flex items-center justify-center mb-4"><i class="ph ph-bell-ringing text-3xl"></i></div>
+                    <h3 class="font-semibold text-lg text-dark dark:text-white">Bot Telegram</h3>
                     <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Gunakan lewat Telegram, langsung tersambung ke akun kamu di dashboard.</p>
                 </div>
             </div>
@@ -378,23 +378,23 @@ $isLoggedIn = !empty($_SESSION['user_id']);
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="text-center p-6 rounded-2xl bg-gradient-to-b from-white/90 to-blue-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-blue-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 mx-auto rounded-full bg-primary text-white flex items-center justify-center font-display font-bold text-xl mb-4">1</div>
-                <h3 class="font-semibold text-dark dark:text-white">Buat Akun</h3>
+                <div class="w-16 h-16 mx-auto rounded-full bg-primary text-white flex items-center justify-center font-display font-extrabold text-2xl mb-4 shadow-md shadow-blue-500/20">1</div>
+                <h3 class="font-semibold text-lg text-dark dark:text-white">Buat Akun</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Daftar gratis dengan email kamu.</p>
             </div>
             <div class="text-center p-6 rounded-2xl bg-gradient-to-b from-white/90 to-green-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-green-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 mx-auto rounded-full bg-green-600 text-white flex items-center justify-center font-display font-bold text-xl mb-4">2</div>
-                <h3 class="font-semibold text-dark dark:text-white">Hubungkan Bot</h3>
+                <div class="w-16 h-16 mx-auto rounded-full bg-green-600 text-white flex items-center justify-center font-display font-extrabold text-2xl mb-4 shadow-md shadow-green-500/20">2</div>
+                <h3 class="font-semibold text-lg text-dark dark:text-white">Hubungkan Bot</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Hubungkan ID Telegram kamu di menu Pengaturan.</p>
             </div>
             <div class="text-center p-6 rounded-2xl bg-gradient-to-b from-white/90 to-cyan-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-cyan-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 mx-auto rounded-full bg-cyan-600 text-white flex items-center justify-center font-display font-bold text-xl mb-4">3</div>
-                <h3 class="font-semibold text-dark dark:text-white">Kirim Catatan</h3>
+                <div class="w-16 h-16 mx-auto rounded-full bg-cyan-600 text-white flex items-center justify-center font-display font-extrabold text-2xl mb-4 shadow-md shadow-cyan-500/20">3</div>
+                <h3 class="font-semibold text-lg text-dark dark:text-white">Kirim Catatan</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Tulis contoh "makan 50000" ke bot, transaksi tercatat otomatis.</p>
             </div>
             <div class="text-center p-6 rounded-2xl bg-gradient-to-b from-white/90 to-orange-100/80 dark:from-slate-800/80 dark:to-slate-700/60 shadow-sm border border-orange-100/50 dark:border-slate-700/50">
-                <div class="w-12 h-12 mx-auto rounded-full bg-orange-500 text-white flex items-center justify-center font-display font-bold text-xl mb-4">4</div>
-                <h3 class="font-semibold text-dark dark:text-white">Analisa Dashboard</h3>
+                <div class="w-16 h-16 mx-auto rounded-full bg-orange-500 text-white flex items-center justify-center font-display font-extrabold text-2xl mb-4 shadow-md shadow-orange-500/20">4</div>
+                <h3 class="font-semibold text-lg text-dark dark:text-white">Analisa Dashboard</h3>
                 <p class="mt-2 text-sm text-gray-600 dark:text-slate-300 leading-relaxed">Pantau laporan dan anggaran kamu secara realtime di dashboard.</p>
             </div>
         </div>
@@ -532,14 +532,16 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
     <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 py-14">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
-                <a href="index.php" class="flex items-center gap-2 mb-4">
-                    <div class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center"><img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-12 h-12 md:w-14 md:h-14 object-contain"></div>
-                    <span class="font-display text-xl font-bold text-white">Paham<span class="text-sky-400">Fin</span></span>
+                <a href="index.php" class="flex items-center gap-3 mb-4">
+                    <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
+                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow">
+                    </div>
+                    <span class="font-display text-3xl font-extrabold text-white tracking-tight">Paham<span class="text-sky-400">Fin</span></span>
                 </a>
                 <p class="text-sm leading-relaxed text-gray-400">Tool pencatatan keuangan otomatis berbasis chat. Rapikan keuanganmu tanpa ribet.</p>
             </div>
             <div>
-                <h3 class="font-semibold text-white mb-4">Fitur</h3>
+                <h3 class="font-semibold text-white mb-4 text-base">Fitur</h3>
                 <ul class="space-y-2 text-sm">
                     <li><a href="#fitur" class="hover:text-white">Catatan via Chat</a></li>
                     <li><a href="#fitur" class="hover:text-white">Keyword Otomatis</a></li>
@@ -548,7 +550,7 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
                 </ul>
             </div>
             <div>
-                <h3 class="font-semibold text-white mb-4">Bantuan</h3>
+                <h3 class="font-semibold text-white mb-4 text-base">Bantuan</h3>
                 <ul class="space-y-2 text-sm">
                     <li><a href="#cara-pakai" class="hover:text-white">Cara Pakai</a></li>
                     <li><a href="#faq" class="hover:text-white">FAQ</a></li>
@@ -559,10 +561,10 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
                 </ul>
             </div>
             <div>
-                <h3 class="font-semibold text-white mb-4">Kontak</h3>
-                <ul class="space-y-2 text-sm text-gray-400">
-                    <li class="flex items-center gap-2"><i class="ph ph-envelope"></i> dukungan@PahamFin.local</li>
-                    <li class="flex items-center gap-2"><i class="ph ph-telegram-logo"></i> @Fin890Bot</li>
+                <h3 class="font-semibold text-white mb-4 text-base">Kontak</h3>
+                <ul class="space-y-3 text-sm text-gray-400">
+                    <li class="flex items-center gap-2.5"><i class="ph ph-envelope text-xl text-sky-400"></i> dukungan@PahamFin.local</li>
+                    <li class="flex items-center gap-2.5"><i class="ph ph-telegram-logo text-xl text-sky-400"></i> @Fin890Bot</li>
                 </ul>
             </div>
         </div>
