@@ -78,9 +78,9 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 <!-- ===================== NAVBAR ===================== -->
 <header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 md:h-20 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
     <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-full flex items-center justify-between">
-        <a href="index.php" class="flex items-center gap-2.5 shrink-0">
-            <div class="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center shrink-0">
-                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-9 h-9 md:w-11 md:h-11 object-contain drop-shadow">
+        <a href="index.php" class="flex items-center gap-3 shrink-0">
+            <div class="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center shrink-0">
+                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-12 h-12 md:w-16 md:h-16 object-contain drop-shadow scale-125">
             </div>
             <span class="font-display text-xl md:text-2xl font-extrabold text-dark dark:text-white tracking-tight">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
         </a>
@@ -556,8 +556,8 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
                 <a href="index.php" class="flex items-center gap-3 mb-4">
-                    <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
-                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow">
+                    <div class="w-20 h-20 md:w-28 md:h-28 flex items-center justify-center">
+                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-20 h-20 md:w-28 md:h-28 object-contain drop-shadow scale-125">
                     </div>
                     <span class="font-display text-3xl font-extrabold text-white tracking-tight">Paham<span class="text-sky-400">Fin</span></span>
                 </a>

@@ -119,7 +119,7 @@ $plans = PahamFin_get_subscription_plans($pdo, true);
     <header class="glass-card border-b border-slate-200 dark:border-slate-800 py-4 px-6 sticky top-0 z-30 shadow-sm">
         <div class="max-w-6xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 object-contain">
+                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-14 h-14 object-contain drop-shadow scale-125">
                 <span class="font-display font-extrabold text-xl tracking-tight text-primary dark:text-sky-400">Paham<span class="text-amber-500">Fin</span></span>
             </div>
             <div class="flex items-center gap-3">

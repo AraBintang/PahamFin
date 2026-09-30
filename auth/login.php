@@ -104,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="text-center mb-8 relative">
             <a href="../pages/landing.php" class="inline-block mb-3">
-                  <div class="w-20 h-20 mx-auto mb-2 flex items-center justify-center overflow-hidden">
-                      <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain drop-shadow-md scale-110">
+                  <div class="w-24 h-24 md:w-28 md:h-28 mx-auto mb-2 flex items-center justify-center overflow-visible">
+                      <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain drop-shadow-md scale-125">
                   </div>
             </a>
             <h2 class="text-2xl font-display font-extrabold text-ink dark:text-white">Selamat Datang Kembali</h2>

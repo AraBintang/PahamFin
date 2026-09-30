@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Halaman penghubung akun Telegram ke akun PahamFin.
  *
@@ -137,7 +137,7 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
 <div class="w-full max-w-sm">
     <!-- Logo -->
     <div class="text-center mb-6">
-        <img src="<?= PahamFin_URL_LOGO ?>" class="w-14 h-14 mx-auto mb-3" alt="PahamFin">
+        <img src="<?= PahamFin_URL_LOGO ?>" class="w-20 h-20 md:w-24 md:h-24 mx-auto mb-3 object-contain drop-shadow-md scale-125" alt="PahamFin">
         <h1 class="text-2xl font-bold font-display text-dark dark:text-white">Paham<span class="text-primary dark:text-blue-400">Fin</span></h1>
         <p class="text-sm text-gray-500 dark:text-slate-400 mt-1">Hubungkan akun Telegram ke PahamFin</p>
     </div>
