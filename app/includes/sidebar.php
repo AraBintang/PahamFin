@@ -1,25 +1,29 @@
         <!-- Sidebar -->
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-               class="fixed inset-y-0 left-0 z-30 w-72 sidebar-grad text-white transition-all duration-300 lg:static lg:translate-x-0 flex flex-col shadow-2xl shadow-blue-900/30"
-               :style="collapsed ? 'width: 80px' : 'width: 288px'"
-               style="transition: width 0.3s ease, transform 0.3s ease;">
+               class="fixed inset-y-0 left-0 z-30 w-full sm:w-80 sidebar-grad text-white transition-all duration-300 lg:static lg:translate-x-0 flex flex-col shadow-2xl shadow-blue-900/30"
+               x-effect="if(window.innerWidth >= 1024){ $el.style.width = collapsed ? '80px' : '288px'; } else { $el.style.width = ''; }"
+               style="transition: width 0.3s ease, transform 0.3s ease; max-width: 320px;">
 
             <!-- Logo -->
             <div class="flex items-center justify-between p-4 border-b border-white/10 shrink-0" :class="collapsed ? 'lg:justify-center lg:p-3' : ''">
                 <div class="flex items-center gap-3" :class="collapsed ? 'lg:hidden' : ''">
-                    <div class="w-14 h-14 flex items-center justify-center overflow-hidden drop-shadow-sm">
+                    <div class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center overflow-hidden drop-shadow-sm shrink-0">
                         <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain scale-110">
                     </div>
                     <div>
-                        <h1 class="font-display font-extrabold text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
+                        <h1 class="font-display font-extrabold text-xl md:text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
                         <p class="text-[11px] text-blue-200/70 font-medium tracking-wider mt-0.5">FINANCE MANAGER</p>
                     </div>
+                </div>
+                <!-- Collapsed mini-logo (desktop only) -->
+                <div class="hidden" :class="collapsed ? 'lg:flex items-center justify-center' : 'lg:hidden'">
+                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 object-contain">
                 </div>
                 <div class="flex items-center gap-1">
                     <button @click="collapsed = !collapsed" class="hidden lg:flex w-9 h-9 items-center justify-center rounded-xl text-white/70 hover:bg-white/15 hover:text-white transition-colors" title="Sembunyikan / tampilkan menu">
                         <i class="ph text-2xl" :class="collapsed ? 'ph-sidebar-simple' : 'ph-sidebar'"></i>
                     </button>
-                    <button @click="sidebarOpen = false" class="lg:hidden text-white/70 hover:text-white p-2">
+                    <button @click="sidebarOpen = false" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl text-white/70 hover:bg-white/15 hover:text-white transition-colors">
                         <i class="ph ph-x text-2xl"></i>
                     </button>
                 </div>
@@ -156,7 +160,7 @@
                     <button @click="sidebarOpen = true" class="lg:hidden p-2 text-gray-500 dark:text-slate-400 hover:text-primary dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-700 rounded-xl transition">
                         <i class="ph ph-list text-2xl"></i>
                     </button>
-                    <div class="min-w-0 hidden sm:block">
+                    <div class="min-w-0">
                         <h2 class="text-base lg:text-lg font-display font-bold text-ink dark:text-slate-100 truncate"><?= get_page_title($current_page, $isAdmin, $adminPage) ?></h2>
                         <p class="text-xs text-gray-400 dark:text-slate-500 hidden lg:block">Selamat datang, <?= htmlspecialchars($userProfile['name'] ?? 'Pengguna') ?> <?= $isAdmin ? '· Admin' : '' ?> 👋</p>
                     </div>

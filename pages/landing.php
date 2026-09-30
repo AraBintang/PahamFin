@@ -37,7 +37,8 @@ $isLoggedIn = !empty($_SESSION['user_id']);
     <?php require_once __DIR__ . '/../app/includes/theme.php'; ?>
     <style>
         html { scroll-behavior: smooth; }
-        section[id] { scroll-margin-top: 80px; }
+        section[id] { scroll-margin-top: 64px; }
+        @media (min-width: 768px) { section[id] { scroll-margin-top: 80px; } }
         
         .hero-bg {
             /* Removing old gradient so bg-canvas can show through */
@@ -75,13 +76,13 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 <body class="bg-canvas text-dark dark:text-slate-100 antialiased font-sans">
 
 <!-- ===================== NAVBAR ===================== -->
-<header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-20 md:h-24 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
+<header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 md:h-20 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
     <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 h-full flex items-center justify-between">
-        <a href="index.php" class="flex items-center gap-3">
-            <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
-                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow">
+        <a href="index.php" class="flex items-center gap-2 md:gap-3 min-w-0">
+            <div class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center shrink-0">
+                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow">
             </div>
-            <span class="font-display text-3xl md:text-4xl font-extrabold text-dark dark:text-white tracking-tight">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
+            <span class="font-display text-xl md:text-3xl font-extrabold text-dark dark:text-white tracking-tight truncate">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
         </a>
         <nav class="hidden lg:flex items-center gap-[42px]">
             <a href="#fitur" class="text-base font-semibold hover:opacity-60 transition-opacity">Fitur</a>
@@ -100,27 +101,49 @@ $isLoggedIn = !empty($_SESSION['user_id']);
                 <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="inline-flex items-center justify-center w-[110px] h-[44px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90 text-base">Daftar</a>
             <?php endif; ?>
         </div>
-        <button @click="menuOpen = !menuOpen" class="lg:hidden text-2xl text-dark dark:text-white">
-            <i class="ph" :class="menuOpen ? 'ph-x' : 'ph-list'"></i>
+        <button @click="menuOpen = !menuOpen" class="lg:hidden w-11 h-11 flex items-center justify-center rounded-xl text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors shrink-0">
+            <i class="ph text-3xl" :class="menuOpen ? 'ph-x' : 'ph-list'"></i>
         </button>
     </div>
-    <!-- Mobile menu -->
-    <div x-show="menuOpen" x-transition class="lg:hidden bg-white dark:bg-slate-900/80 shadow-lg border-t border-gray-100 dark:border-slate-700">
-        <div class="px-6 py-4 flex flex-col gap-1">
-            <a href="#fitur" class="py-2 text-sm font-medium">Fitur</a>
-            <a href="#keunggulan" class="py-2 text-sm font-medium">Keunggulan</a>
-            <a href="#cara-pakai" class="py-2 text-sm font-medium">Cara Pakai</a>
-            <a href="#testimoni" class="py-2 text-sm font-medium">Testimoni</a>
-            <a href="#harga" class="py-2 text-sm font-medium">Harga</a>
-            <a href="#faq" class="py-2 text-sm font-medium">FAQ</a>
-            <div class="pt-3 border-t border-gray-100 dark:border-slate-700">
-                <button @click="toggleDark()" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
-                    <i class="ph text-lg" :class="darkMode ? 'ph-sun' : 'ph-moon'"></i> <span x-text="darkMode ? 'Mode Terang' : 'Mode Gelap'"></span>
+    <!-- Mobile dropdown menu -->
+    <div x-show="menuOpen" x-transition class="lg:hidden bg-white dark:bg-slate-900 shadow-2xl border-t border-gray-100 dark:border-slate-700 absolute top-full left-0 right-0 z-50 overflow-y-auto max-h-[calc(100vh-4rem)]">
+        <div class="px-4 py-2">
+            <div class="flex flex-col">
+                <a href="#fitur"      @click="menuOpen=false" class="flex items-center gap-3 py-4 border-b border-gray-50 dark:border-slate-800 text-base font-semibold text-dark dark:text-white hover:text-primary dark:hover:text-blue-400 transition-colors">
+                    <i class="ph ph-star text-xl text-primary dark:text-blue-400 w-6 shrink-0 text-center"></i>Fitur
+                </a>
+                <a href="#keunggulan" @click="menuOpen=false" class="flex items-center gap-3 py-4 border-b border-gray-50 dark:border-slate-800 text-base font-semibold text-dark dark:text-white hover:text-primary dark:hover:text-blue-400 transition-colors">
+                    <i class="ph ph-shield-check text-xl text-primary dark:text-blue-400 w-6 shrink-0 text-center"></i>Keunggulan
+                </a>
+                <a href="#cara-pakai" @click="menuOpen=false" class="flex items-center gap-3 py-4 border-b border-gray-50 dark:border-slate-800 text-base font-semibold text-dark dark:text-white hover:text-primary dark:hover:text-blue-400 transition-colors">
+                    <i class="ph ph-list-numbers text-xl text-primary dark:text-blue-400 w-6 shrink-0 text-center"></i>Cara Pakai
+                </a>
+                <a href="#testimoni"  @click="menuOpen=false" class="flex items-center gap-3 py-4 border-b border-gray-50 dark:border-slate-800 text-base font-semibold text-dark dark:text-white hover:text-primary dark:hover:text-blue-400 transition-colors">
+                    <i class="ph ph-chat-circle-dots text-xl text-primary dark:text-blue-400 w-6 shrink-0 text-center"></i>Testimoni
+                </a>
+                <a href="#harga"      @click="menuOpen=false" class="flex items-center gap-3 py-4 border-b border-gray-50 dark:border-slate-800 text-base font-semibold text-dark dark:text-white hover:text-primary dark:hover:text-blue-400 transition-colors">
+                    <i class="ph ph-tag text-xl text-primary dark:text-blue-400 w-6 shrink-0 text-center"></i>Harga
+                </a>
+                <a href="#faq"        @click="menuOpen=false" class="flex items-center gap-3 py-4 text-base font-semibold text-dark dark:text-white hover:text-primary dark:hover:text-blue-400 transition-colors">
+                    <i class="ph ph-question text-xl text-primary dark:text-blue-400 w-6 shrink-0 text-center"></i>FAQ
+                </a>
+            </div>
+            <div class="pt-3 pb-5 flex flex-col gap-2.5 border-t border-gray-100 dark:border-slate-700 mt-1">
+                <button @click="toggleDark()" class="w-full flex items-center justify-center gap-2.5 py-3 rounded-xl text-base font-semibold text-gray-700 dark:text-slate-200 bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
+                    <i class="ph text-xl" :class="darkMode ? 'ph-sun' : 'ph-moon'"></i>
+                    <span x-text="darkMode ? 'Mode Terang' : 'Mode Gelap'"></span>
                 </button>
-                <?php if ($isLoggedIn): ?><a href="index.php" class="block text-center py-2.5 bg-primary text-white font-semibold rounded-lg">Dashboard</a>
+                <?php if ($isLoggedIn): ?>
+                    <a href="index.php" class="flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold rounded-xl text-base hover:opacity-90">
+                        <i class="ph ph-squares-four text-xl"></i> Dashboard
+                    </a>
                 <?php else: ?>
-                    <a href="<?= PahamFin_URL_AUTH ?>/login.php" class="block text-center py-2.5 border-2 border-primary text-primary dark:text-blue-400 font-semibold rounded-lg">Masuk</a>
-                    <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="mt-2 block text-center py-2.5 bg-primary text-white font-semibold rounded-lg">Daftar Gratis</a>
+                    <a href="<?= PahamFin_URL_AUTH ?>/login.php" class="flex items-center justify-center gap-2 py-4 border-2 border-primary text-primary dark:text-blue-400 font-bold rounded-xl text-base hover:bg-primary hover:text-white transition-colors">
+                        <i class="ph ph-sign-in text-xl"></i> Masuk
+                    </a>
+                    <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="flex items-center justify-center gap-2 py-4 bg-primary text-white font-bold rounded-xl text-base hover:opacity-90">
+                        <i class="ph ph-user-plus text-xl"></i> Daftar Gratis
+                    </a>
                 <?php endif; ?>
             </div>
         </div>
@@ -129,7 +152,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== HERO ===================== -->
 <section class="hero-bg relative overflow-hidden text-neutral">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 relative z-10 flex flex-col items-center min-h-[760px] pt-[110px] pb-[120px] text-center">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 relative z-10 flex flex-col items-center min-h-[600px] md:min-h-[760px] pt-24 md:pt-28 pb-16 md:pb-24 text-center">
         <h1 class="font-display font-bold text-[30px] lg:text-[44px] leading-[1.35] max-w-[860px] text-dark dark:text-white">
             Kelola Uang Segampang Kirim Pesan 💬
         </h1>
