@@ -435,16 +435,16 @@ function transactionPage() {
             <!-- Pagination -->
             <?php if ($totalPages > 1): ?>
             <div class="p-4 flex items-center justify-between border-t border-gray-100 dark:border-slate-700/50">
-                <span class="text-xs text-gray-500 dark:text-slate-400">Halaman <?= $page ?> dari <?= $totalPages ?></span>
+                <span class="text-xs text-gray-500 dark:text-slate-400">Halaman <?= $currentPage ?> dari <?= $totalPages ?></span>
                 <div class="flex gap-2">
-                    <?php if ($page > 1): ?>
-                        <a href="?page=<?= $page - 1 ?>&<?= htmlspecialchars($filterQuery) ?>" class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">Prev</a>
+                    <?php if ($currentPage > 1): ?>
+                        <a href="?page=<?= $currentPage - 1 ?>&<?= htmlspecialchars($filterQuery) ?>" class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">Prev</a>
                     <?php endif; ?>
                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                        <a href="?page=<?= $i ?>&<?= htmlspecialchars($filterQuery) ?>" class="px-3 py-1.5 border rounded-lg text-sm <?= $i === $page ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50' ?>"><?= $i ?></a>
+                        <a href="?page=<?= $i ?>&<?= htmlspecialchars($filterQuery) ?>" class="px-3 py-1.5 border rounded-lg text-sm <?= $i === $currentPage ? 'bg-blue-600 text-white border-blue-600' : 'border-gray-300 dark:border-slate-600 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50' ?>"><?= $i ?></a>
                     <?php endfor; ?>
-                    <?php if ($page < $totalPages): ?>
-                        <a href="?page=<?= $page + 1 ?>&<?= htmlspecialchars($filterQuery) ?>" class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">Next</a>
+                    <?php if ($currentPage < $totalPages): ?>
+                        <a href="?page=<?= $currentPage + 1 ?>&<?= htmlspecialchars($filterQuery) ?>" class="px-3 py-1.5 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700/50">Next</a>
                     <?php endif; ?>
                 </div>
             </div>
