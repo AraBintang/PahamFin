@@ -77,28 +77,28 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== NAVBAR ===================== -->
 <header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 md:h-20 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 h-full flex items-center justify-between">
-        <a href="index.php" class="flex items-center gap-2 md:gap-3 min-w-0">
-            <div class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center shrink-0">
-                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-full flex items-center justify-between">
+        <a href="index.php" class="flex items-center gap-2.5 shrink-0">
+            <div class="w-9 h-9 md:w-11 md:h-11 flex items-center justify-center shrink-0">
+                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-9 h-9 md:w-11 md:h-11 object-contain drop-shadow">
             </div>
-            <span class="font-display text-xl md:text-3xl font-extrabold text-dark dark:text-white tracking-tight truncate">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
+            <span class="font-display text-xl md:text-2xl font-extrabold text-dark dark:text-white tracking-tight">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
         </a>
-        <nav class="hidden lg:flex items-center gap-[42px]">
-            <a href="#fitur" class="text-base font-semibold hover:opacity-60 transition-opacity">Fitur</a>
-            <a href="#keunggulan" class="text-base font-semibold hover:opacity-60 transition-opacity">Keunggulan</a>
-            <a href="#cara-pakai" class="text-base font-semibold hover:opacity-60 transition-opacity">Cara Pakai</a>
-            <a href="#testimoni" class="text-base font-semibold hover:opacity-60 transition-opacity">Testimoni</a>
-            <a href="#harga" class="text-base font-semibold hover:opacity-60 transition-opacity">Harga</a>
-            <a href="#faq" class="text-base font-semibold hover:opacity-60 transition-opacity">FAQ</a>
+        <nav class="hidden lg:flex items-center gap-5 xl:gap-8">
+            <a href="#fitur" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">Fitur</a>
+            <a href="#keunggulan" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">Keunggulan</a>
+            <a href="#cara-pakai" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">Cara Pakai</a>
+            <a href="#testimoni" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">Testimoni</a>
+            <a href="#harga" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">Harga</a>
+            <a href="#faq" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">FAQ</a>
         </nav>
-        <div class="hidden lg:flex items-center gap-3">
+        <div class="hidden lg:flex items-center gap-3 shrink-0">
             <?= PahamFin_theme_toggle('landing') ?>
             <?php if ($isLoggedIn): ?>
-                <a href="index.php" class="inline-flex items-center justify-center w-[120px] h-[44px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors text-base">Dashboard</a>
+                <a href="index.php" class="inline-flex items-center justify-center px-5 h-[40px] bg-primary text-white font-semibold rounded-lg transition-colors text-sm md:text-base hover:opacity-90">Dashboard</a>
             <?php else: ?>
-                <a href="<?= PahamFin_URL_AUTH ?>/login.php" class="inline-flex items-center justify-center w-[110px] h-[44px] border-primary border-2 text-primary dark:text-blue-400 font-semibold rounded-lg hover:bg-[#3A519D] hover:text-white transition-colors text-base">Masuk</a>
-                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="inline-flex items-center justify-center w-[110px] h-[44px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90 text-base">Daftar</a>
+                <a href="<?= PahamFin_URL_AUTH ?>/login.php" class="inline-flex items-center justify-center px-4 h-[40px] border-primary border-2 text-primary dark:text-blue-400 font-semibold rounded-lg hover:bg-primary hover:text-white transition-colors text-sm md:text-base">Masuk</a>
+                <a href="<?= PahamFin_URL_AUTH ?>/register.php" class="inline-flex items-center justify-center px-4 h-[40px] bg-primary text-white border border-primary font-semibold rounded-lg transition-colors hover:opacity-90 text-sm md:text-base">Daftar</a>
             <?php endif; ?>
         </div>
         <button @click="menuOpen = !menuOpen" class="lg:hidden w-11 h-11 flex items-center justify-center rounded-xl text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors shrink-0">
@@ -152,7 +152,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== HERO ===================== -->
 <section class="hero-bg relative overflow-hidden text-neutral">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 relative z-10 flex flex-col items-center min-h-[600px] md:min-h-[760px] pt-24 md:pt-28 pb-16 md:pb-24 text-center">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12 relative z-10 flex flex-col items-center min-h-[600px] md:min-h-[760px] pt-24 md:pt-28 pb-16 md:pb-24 text-center">
         <h1 class="font-display font-bold text-[30px] lg:text-[44px] leading-[1.35] max-w-[860px] text-dark dark:text-white">
             Kelola Uang Segampang Kirim Pesan 💬
         </h1>
@@ -306,7 +306,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== FITUR ===================== -->
 <section id="fitur" class="py-16 lg:py-24">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 text-center">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12 text-center">
         <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Kenapa Memakai PahamFin?</h2>
         <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Dirancang agar pencatatan keuangan jadi lebih praktis, cepat, dan otomatis.</p>
 
@@ -337,7 +337,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== KEUNGGULAN ===================== -->
 <section id="keunggulan" class="py-16 lg:py-24 bg-gradient-to-b from-blue-50/80 to-indigo-50/60 dark:from-slate-900 dark:to-slate-800/60">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12">
         <div class="text-center mb-12">
             <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Keunggulan PahamFin</h2>
             <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Semua yang kamu butuhkan untuk mengendalikan keuangan, otomatis.</p>
@@ -394,7 +394,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== CARA PAKAI ===================== -->
 <section id="cara-pakai" class="py-16 lg:py-24 bg-white/60 dark:bg-slate-900/80 backdrop-blur-sm">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12">
         <div class="text-center mb-12">
             <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Cara Penggunaan PahamFin</h2>
             <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Empat langkah mudah untuk mulai mencatat keuangan otomatis.</p>
@@ -426,7 +426,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== TESTIMONI ===================== -->
 <section id="testimoni" class="py-16 lg:py-24 bg-gradient-to-b from-emerald-50/60 to-teal-50/40 dark:from-slate-900 dark:to-slate-800/60">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12">
         <div class="text-center mb-12">
             <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Kata Mereka Tentang PahamFin</h2>
             <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Pengguna sudah merasakan kemudahan mencatat keuangan secara otomatis.</p>
@@ -480,7 +480,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 $landingPlans = PahamFin_get_subscription_plans($pdo, true);
 ?>
 <section id="harga" class="py-16 lg:py-24 bg-white/60 dark:bg-slate-900/80 backdrop-blur-sm">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12">
         <div class="text-center mb-12">
             <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Pilihan Paket Langganan</h2>
             <p class="mt-4 text-gray-600 dark:text-slate-300 max-w-[640px] mx-auto leading-[170%]">Pilih durasi paket yang sesuai dengan kebutuhanmu. Seluruh paket mendapatkan akses penuh ke seluruh fitur PahamFin.</p>
@@ -522,7 +522,7 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
 
 <!-- ===================== FAQ ===================== -->
 <section id="faq" class="py-16 lg:py-24 bg-gradient-to-b from-sky-50/70 to-blue-50/50 dark:from-slate-900 dark:to-slate-800/60">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12">
         <div class="text-center mb-12">
             <h2 class="font-display text-[26px] lg:text-[36px] font-bold text-dark dark:text-white">Frequently Asked Question</h2>
             <p class="mt-4 text-gray-600 dark:text-slate-300">Hal-hal yang paling sering ditanyakan tentang PahamFin.</p>
@@ -552,7 +552,7 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
 
 <!-- ===================== FOOTER ===================== -->
 <footer class="bg-[#0A1E33] text-gray-300">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-40 py-14">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12 py-14">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
                 <a href="index.php" class="flex items-center gap-3 mb-4">
