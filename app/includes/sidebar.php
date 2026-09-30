@@ -1,23 +1,23 @@
         <!-- Sidebar -->
         <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-               class="fixed inset-y-0 left-0 z-30 w-full sm:w-80 sidebar-grad text-white transition-all duration-300 lg:static lg:translate-x-0 flex flex-col shadow-2xl shadow-blue-900/30"
+               class="fixed inset-y-0 left-0 z-30 w-full sm:w-80 sidebar-grad text-white transition-all duration-300 lg:static lg:translate-x-0 flex flex-col shadow-2xl shadow-blue-900/30 overflow-hidden"
                x-effect="if(window.innerWidth >= 1024){ $el.style.width = collapsed ? '80px' : '288px'; } else { $el.style.width = ''; }"
                style="transition: width 0.3s ease, transform 0.3s ease; max-width: 320px;">
 
             <!-- Logo -->
-            <div class="flex items-center justify-between p-4 border-b border-white/10 shrink-0" :class="collapsed ? 'lg:justify-center lg:p-3' : ''">
-                <div class="flex items-center gap-3" :class="collapsed ? 'lg:hidden' : ''">
-                    <div class="w-18 h-18 md:w-22 md:h-22 flex items-center justify-center shrink-0">
-                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-18 h-18 md:w-22 md:h-22 object-contain drop-shadow-md">
+            <div class="flex items-center justify-between p-4 border-b border-white/10 shrink-0 overflow-hidden" :class="collapsed ? 'lg:justify-center lg:p-3' : ''">
+                <div class="flex items-center gap-3 min-w-0" :class="collapsed ? 'lg:hidden' : ''">
+                    <div class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center shrink-0 overflow-hidden">
+                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain drop-shadow-md">
                     </div>
-                    <div>
-                        <h1 class="font-display font-extrabold text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
-                        <p class="text-[11px] text-blue-200/70 font-medium tracking-wider mt-0.5">FINANCE MANAGER</p>
+                    <div class="min-w-0">
+                        <h1 class="font-display font-extrabold text-xl md:text-2xl tracking-tight leading-none truncate">Paham<span class="text-amber-300">Fin</span></h1>
+                        <p class="text-[11px] text-blue-200/70 font-medium tracking-wider mt-0.5 truncate">FINANCE MANAGER</p>
                     </div>
                 </div>
                 <!-- Collapsed mini-logo (desktop only) -->
-                <div class="hidden" :class="collapsed ? 'lg:flex items-center justify-center' : 'lg:hidden'">
-                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-14 h-14 object-contain drop-shadow">
+                <div class="hidden shrink-0" :class="collapsed ? 'lg:flex items-center justify-center' : 'lg:hidden'">
+                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 object-contain drop-shadow">
                 </div>
                 <div class="flex items-center gap-1">
                     <button @click="collapsed = !collapsed" class="hidden lg:flex w-9 h-9 items-center justify-center rounded-xl text-white/70 hover:bg-white/15 hover:text-white transition-colors" title="Sembunyikan / tampilkan menu">
