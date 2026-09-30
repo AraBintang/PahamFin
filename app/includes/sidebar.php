@@ -7,8 +7,8 @@
             <!-- Logo -->
             <div class="flex items-center justify-between p-4 border-b border-white/10 shrink-0" :class="collapsed ? 'lg:justify-center lg:p-3' : ''">
                 <div class="flex items-center gap-3" :class="collapsed ? 'lg:hidden' : ''">
-                    <div class="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center overflow-visible drop-shadow-sm shrink-0">
-                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain scale-125">
+                    <div class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center overflow-hidden drop-shadow-sm shrink-0">
+                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain">
                     </div>
                     <div>
                         <h1 class="font-display font-extrabold text-xl md:text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
@@ -17,7 +17,7 @@
                 </div>
                 <!-- Collapsed mini-logo (desktop only) -->
                 <div class="hidden" :class="collapsed ? 'lg:flex items-center justify-center' : 'lg:hidden'">
-                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-12 h-12 object-contain scale-125">
+                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 object-contain">
                 </div>
                 <div class="flex items-center gap-1">
                     <button @click="collapsed = !collapsed" class="hidden lg:flex w-9 h-9 items-center justify-center rounded-xl text-white/70 hover:bg-white/15 hover:text-white transition-colors" title="Sembunyikan / tampilkan menu">
