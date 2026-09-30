@@ -56,6 +56,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($_POST['action'] ?? '', ['
     if ($isAdmin && !empty($_POST['target_user_id'])) {
         $targetUserId = (int) $_POST['target_user_id'];
         PahamFin_seed_default_categories($pdo, $targetUserId);
+
+        // Petakan categoryId agar sesuai dengan kategori milik target user
+        $catNameStmt = $pdo->prepare("SELECT name, type FROM categories WHERE id = ? LIMIT 1");
+        $catNameStmt->execute([$categoryId]);
+        $selectedCat = $catNameStmt->fetch(PDO::FETCH_ASSOC);
+        if ($selectedCat) {
+            $userCatStmt = $pdo->prepare("SELECT id FROM categories WHERE user_id = ? AND name = ? LIMIT 1");
+            $userCatStmt->execute([$targetUserId, $selectedCat['name']]);
+            $userCatId = $userCatStmt->fetchColumn();
+            if ($userCatId) {
+                $categoryId = (int) $userCatId;
+            }
+        }
     }
 
     if ($categoryId > 0 && $amount > 0 && $amount <= 9999999999) {
@@ -104,14 +117,18 @@ $filters = [
 
 $allUsers = $isAdmin ? $pdo->query("SELECT id, name, email FROM users ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC) : [];
 
-$catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? ORDER BY type, name");
-$catStmt->execute([$user_id]);
-$categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
-
-if (count($categories) === 0) {
-    // Fallback jika belum ada kategori spesifik user
-    $catStmt = $pdo->query("SELECT * FROM categories GROUP BY name ORDER BY type, name");
+if ($isAdmin) {
+    // Query kategori teragregasi valid untuk MySQL 8 (tanpa ONLY_FULL_GROUP_BY error) & SQLite
+    $catStmt = $pdo->query("SELECT MIN(id) as id, name, MIN(type) as type FROM categories GROUP BY name, type ORDER BY type, name");
     $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $catStmt = $pdo->prepare("SELECT * FROM categories WHERE user_id = ? ORDER BY type, name");
+    $catStmt->execute([$user_id]);
+    $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (count($categories) === 0) {
+        $catStmt = $pdo->query("SELECT MIN(id) as id, name, MIN(type) as type FROM categories GROUP BY name, type ORDER BY type, name");
+        $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 /* --- Query dengan filter + pencarian + pagination --- */
