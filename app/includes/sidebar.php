@@ -7,17 +7,17 @@
             <!-- Logo -->
             <div class="flex items-center justify-between p-4 border-b border-white/10 shrink-0" :class="collapsed ? 'lg:justify-center lg:p-3' : ''">
                 <div class="flex items-center gap-3" :class="collapsed ? 'lg:hidden' : ''">
-                    <div class="w-12 h-12 md:w-14 md:h-14 flex items-center justify-center overflow-hidden drop-shadow-sm shrink-0">
-                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-full h-full object-contain">
+                    <div class="w-18 h-18 md:w-22 md:h-22 flex items-center justify-center shrink-0">
+                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-18 h-18 md:w-22 md:h-22 object-contain drop-shadow-md">
                     </div>
                     <div>
-                        <h1 class="font-display font-extrabold text-xl md:text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
+                        <h1 class="font-display font-extrabold text-2xl tracking-tight leading-none">Paham<span class="text-amber-300">Fin</span></h1>
                         <p class="text-[11px] text-blue-200/70 font-medium tracking-wider mt-0.5">FINANCE MANAGER</p>
                     </div>
                 </div>
                 <!-- Collapsed mini-logo (desktop only) -->
                 <div class="hidden" :class="collapsed ? 'lg:flex items-center justify-center' : 'lg:hidden'">
-                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 object-contain">
+                    <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-14 h-14 object-contain drop-shadow">
                 </div>
                 <div class="flex items-center gap-1">
                     <button @click="collapsed = !collapsed" class="hidden lg:flex w-9 h-9 items-center justify-center rounded-xl text-white/70 hover:bg-white/15 hover:text-white transition-colors" title="Sembunyikan / tampilkan menu">

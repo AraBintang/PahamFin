@@ -76,13 +76,13 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 <body class="bg-canvas text-dark dark:text-slate-100 antialiased font-sans">
 
 <!-- ===================== NAVBAR ===================== -->
-<header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-16 md:h-20 transition-all duration-300 bg-white/70 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-white/20">
+<header id="navbar" class="fixed top-0 left-0 right-0 z-40 h-24 md:h-28 transition-all duration-300 bg-white/80 dark:bg-slate-900/90 backdrop-blur-md shadow-sm border-b border-white/20">
     <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 h-full flex items-center justify-between">
-        <a href="index.php" class="flex items-center gap-2.5 shrink-0">
-            <div class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center shrink-0">
-                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-10 h-10 md:w-14 md:h-14 object-contain drop-shadow">
+        <a href="index.php" class="flex items-center gap-3 shrink-0">
+            <div class="w-20 h-20 md:w-24 md:h-24 flex items-center justify-center shrink-0">
+                <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-20 h-20 md:w-24 md:h-24 object-contain drop-shadow-lg">
             </div>
-            <span class="font-display text-xl md:text-2xl font-extrabold text-dark dark:text-white tracking-tight">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
+            <span class="font-display text-2xl md:text-3xl font-extrabold text-dark dark:text-white tracking-tight">Paham<span class="text-primary dark:text-blue-400">Fin</span></span>
         </a>
         <nav class="hidden lg:flex items-center gap-5 xl:gap-8">
             <a href="#fitur" class="text-sm md:text-base font-semibold text-gray-700 dark:text-slate-200 hover:text-primary dark:hover:text-blue-400 transition-colors">Fitur</a>
@@ -152,7 +152,7 @@ $isLoggedIn = !empty($_SESSION['user_id']);
 
 <!-- ===================== HERO ===================== -->
 <section class="hero-bg relative overflow-hidden text-neutral">
-    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12 relative z-10 flex flex-col items-center min-h-[600px] md:min-h-[760px] pt-24 md:pt-28 pb-16 md:pb-24 text-center">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-10 xl:px-12 relative z-10 flex flex-col items-center min-h-[600px] md:min-h-[760px] pt-32 md:pt-36 pb-16 md:pb-24 text-center">
         <h1 class="font-display font-bold text-[30px] lg:text-[44px] leading-[1.35] max-w-[860px] text-dark dark:text-white">
             Kelola Uang Segampang Kirim Pesan 💬
         </h1>
@@ -556,10 +556,10 @@ $landingPlans = PahamFin_get_subscription_plans($pdo, true);
         <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
             <div>
                 <a href="index.php" class="flex items-center gap-3 mb-4">
-                    <div class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center">
-                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-16 h-16 md:w-20 md:h-20 object-contain drop-shadow">
+                    <div class="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center">
+                        <img src="<?= PahamFin_URL_LOGO ?>" alt="PahamFin" class="w-24 h-24 md:w-32 md:h-32 object-contain drop-shadow-xl">
                     </div>
-                    <span class="font-display text-3xl font-extrabold text-white tracking-tight">Paham<span class="text-sky-400">Fin</span></span>
+                    <span class="font-display text-3xl md:text-4xl font-extrabold text-white tracking-tight">Paham<span class="text-sky-400">Fin</span></span>
                 </a>
                 <p class="text-sm leading-relaxed text-gray-400">Tool pencatatan keuangan otomatis berbasis chat. Rapikan keuanganmu tanpa ribet.</p>
             </div>
