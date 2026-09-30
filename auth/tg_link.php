@@ -1,12 +1,12 @@
-<?php
+﻿<?php
 /**
  * Halaman penghubung akun Telegram ke akun PahamFin.
  *
  * Alur:
  * 1. Bot Telegram generate token dan kirim link: /auth/tg_link.php?token=xxx
- * 2. User klik link â†’ halaman ini muncul
- * 3. Jika user belum login â†’ tampilkan form login
- * 4. Setelah login (atau sudah login) â†’ Telegram ID dihubungkan ke akun
+ * 2. User klik link → halaman ini muncul
+ * 3. Jika user belum login → tampilkan form login
+ * 4. Setelah login (atau sudah login) → Telegram ID dihubungkan ke akun
  * 5. Tampilkan pesan sukses + instruksi kembali ke bot
  */
 require_once __DIR__ . '/../app/db.php';
@@ -150,12 +150,12 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
             <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="ph ph-check-circle text-4xl text-green-500"></i>
             </div>
-            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Berhasil Terhubung! ðŸŽ‰</h2>
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Berhasil Terhubung! 🎉</h2>
             <p class="text-sm text-gray-600 dark:text-slate-300">
                 Halo <strong><?= htmlspecialchars($userName ?? '') ?></strong>, akun Telegram kamu sudah berhasil dihubungkan ke PahamFin!
             </p>
             <div class="mt-5 p-4 bg-sky-50 dark:bg-sky-900/20 rounded-xl text-sm text-sky-800 dark:text-sky-300 text-left">
-                <p class="font-semibold mb-2">ðŸ“± Langkah selanjutnya:</p>
+                <p class="font-semibold mb-2">📱 Langkah selanjutnya:</p>
                 <p>Kembali ke bot Telegram <strong>@<?= htmlspecialchars($botName) ?></strong> dan kirim pesan seperti:</p>
                 <code class="block mt-2 bg-white dark:bg-slate-700 px-3 py-2 rounded-lg text-xs">makan 50000</code>
             </div>
@@ -164,7 +164,7 @@ if (!$error && !$success && !empty($_SESSION['user_id'])) {
                 <i class="ph ph-telegram-logo text-xl"></i> Kembali ke Bot Telegram
             </a>
             <a href="<?= PahamFin_BASE_URL ?>/pages/index.php" class="block mt-3 text-sm text-center text-gray-500 dark:text-slate-400 hover:underline">
-                Buka Dashboard â†’
+                Buka Dashboard →
             </a>
         </div>
 
